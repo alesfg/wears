@@ -19,7 +19,7 @@ export function TierBadge({ cpw }: Props) {
     >
       <Text
         style={{
-          fontFamily: "Courier",
+          fontFamily: "DMSans_400Regular",
           fontSize: 9,
           color: Colors.cream,
           letterSpacing: 1.5,

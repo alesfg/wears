@@ -98,11 +98,11 @@ export default function ShareModal() {
         }}
       >
         <TouchableOpacity onPress={() => router.back()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-          <Text style={{ fontFamily: "Courier", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>
+          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>
             CLOSE
           </Text>
         </TouchableOpacity>
-        <Text style={{ fontFamily: "Courier", fontSize: 10, color: Colors.ink, letterSpacing: 2, textTransform: "uppercase" }}>
+        <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.ink, letterSpacing: 2, textTransform: "uppercase" }}>
           Share Asset
         </Text>
         <View style={{ width: 44 }} />
@@ -126,7 +126,7 @@ export default function ShareModal() {
           >
             <Text
               style={{
-                fontFamily: "Courier",
+                fontFamily: "DMSans_400Regular",
                 fontSize: 9,
                 color: format === f.key ? Colors.ink : Colors.muted,
                 letterSpacing: 1.5,
@@ -174,7 +174,7 @@ export default function ShareModal() {
           {saving ? (
             <ActivityIndicator color={Colors.cream} />
           ) : (
-            <Text style={{ fontFamily: "Courier", fontSize: 10, color: Colors.cream, letterSpacing: 2, textTransform: "uppercase" }}>
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.cream, letterSpacing: 2, textTransform: "uppercase" }}>
               Save to Camera Roll
             </Text>
           )}
@@ -190,7 +190,7 @@ export default function ShareModal() {
           }}
           activeOpacity={0.7}
         >
-          <Text style={{ fontFamily: "Courier", fontSize: 10, color: Colors.ink, letterSpacing: 2, textTransform: "uppercase" }}>
+          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.ink, letterSpacing: 2, textTransform: "uppercase" }}>
             Share...
           </Text>
         </TouchableOpacity>

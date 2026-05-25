@@ -30,7 +30,7 @@ export default function Welcome() {
         <View>
           <Text
             style={{
-              fontFamily: "DMSerifDisplay_400Regular",
+              fontFamily: "InstrumentSerif_400Regular",
               fontSize: 52,
               color: Colors.ink,
               lineHeight: 58,
@@ -40,7 +40,7 @@ export default function Welcome() {
           </Text>
           <Text
             style={{
-              fontFamily: "DMSerifDisplay_400Regular",
+              fontFamily: "InstrumentSerif_400Regular",
               fontSize: 22,
               color: Colors.cpw,
               marginTop: 4,
@@ -50,7 +50,7 @@ export default function Welcome() {
           </Text>
           <Text
             style={{
-              fontFamily: "Courier",
+              fontFamily: "DMSans_400Regular",
               fontSize: 10,
               color: Colors.muted,
               letterSpacing: 1,
@@ -68,7 +68,7 @@ export default function Welcome() {
             <View key={p.num} style={{ flexDirection: "row", gap: 16, alignItems: "flex-start" }}>
               <Text
                 style={{
-                  fontFamily: "Courier",
+                  fontFamily: "DMSans_400Regular",
                   fontSize: 9,
                   color: Colors.cpw,
                   letterSpacing: 1,
@@ -79,7 +79,7 @@ export default function Welcome() {
               </Text>
               <Text
                 style={{
-                  fontFamily: "DMSerifDisplay_400Regular",
+                  fontFamily: "InstrumentSerif_400Regular",
                   fontSize: 17,
                   color: Colors.ink,
                   flex: 1,
@@ -100,7 +100,7 @@ export default function Welcome() {
           >
             <Text
               style={{
-                fontFamily: "Courier",
+                fontFamily: "DMSans_400Regular",
                 fontSize: 11,
                 color: Colors.cream,
                 letterSpacing: 2,
@@ -118,7 +118,7 @@ export default function Welcome() {
           >
             <Text
               style={{
-                fontFamily: "Courier",
+                fontFamily: "DMSans_400Regular",
                 fontSize: 10,
                 color: Colors.muted,
                 letterSpacing: 1,
@@ -139,7 +139,7 @@ export default function Welcome() {
             ) : (
               <Text
                 style={{
-                  fontFamily: "Courier",
+                  fontFamily: "DMSans_400Regular",
                   fontSize: 9,
                   color: Colors.muted,
                   letterSpacing: 1,

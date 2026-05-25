@@ -42,7 +42,7 @@ export function ReceiptShare({ item, username }: Props) {
       {/* Wordmark */}
       <Text
         style={{
-          fontFamily: "DMSerifDisplay_400Regular",
+          fontFamily: "InstrumentSerif_400Regular",
           fontSize: 22,
           color: "#1A1A1A",
           textAlign: "center",
@@ -54,7 +54,7 @@ export function ReceiptShare({ item, username }: Props) {
       </Text>
       <Text
         style={{
-          fontFamily: "Courier",
+          fontFamily: "DMSans_400Regular",
           fontSize: 8,
           color: "#8A8070",
           textAlign: "center",
@@ -67,7 +67,7 @@ export function ReceiptShare({ item, username }: Props) {
       </Text>
       <Text
         style={{
-          fontFamily: "Courier",
+          fontFamily: "DMSans_400Regular",
           fontSize: 8,
           color: "#8A8070",
           textAlign: "center",
@@ -83,7 +83,7 @@ export function ReceiptShare({ item, username }: Props) {
       {/* Item header */}
       <Text
         style={{
-          fontFamily: "DMSerifDisplay_400Regular",
+          fontFamily: "InstrumentSerif_400Regular",
           fontSize: 18,
           color: "#1A1A1A",
           textAlign: "center",
@@ -94,7 +94,7 @@ export function ReceiptShare({ item, username }: Props) {
       </Text>
       <Text
         style={{
-          fontFamily: "Courier",
+          fontFamily: "DMSans_400Regular",
           fontSize: 8,
           color: "#8A8070",
           textAlign: "center",
@@ -156,7 +156,7 @@ export function ReceiptShare({ item, username }: Props) {
       {/* Net CPW */}
       <Text
         style={{
-          fontFamily: "Courier",
+          fontFamily: "DMSans_400Regular",
           fontSize: 8,
           color: "#8A8070",
           textAlign: "center",
@@ -169,7 +169,7 @@ export function ReceiptShare({ item, username }: Props) {
       </Text>
       <Text
         style={{
-          fontFamily: "DMSerifDisplay_400Regular",
+          fontFamily: "InstrumentSerif_400Regular",
           fontSize: 36,
           color: "#C4503A",
           textAlign: "center",
@@ -182,7 +182,7 @@ export function ReceiptShare({ item, username }: Props) {
       {item.cpw <= 25 && (
         <Text
           style={{
-            fontFamily: "Courier",
+            fontFamily: "DMSans_400Regular",
             fontSize: 8,
             color: "#1A1A1A",
             textAlign: "center",
@@ -221,7 +221,7 @@ export function ReceiptShare({ item, username }: Props) {
 
       <Text
         style={{
-          fontFamily: "Courier",
+          fontFamily: "DMSans_400Regular",
           fontSize: 7,
           color: "#8A8070",
           textAlign: "center",
@@ -250,7 +250,7 @@ function DotLine({ style }: { style?: object }) {
 }
 
 const monoSmall = {
-  fontFamily: "Courier",
+  fontFamily: "DMSans_400Regular",
   fontSize: 8,
   color: "#8A8070",
   letterSpacing: 0.5,

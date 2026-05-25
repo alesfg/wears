@@ -52,7 +52,7 @@ export function PolaroidShare({ item, username }: Props) {
           <View style={{ flex: 1, backgroundColor: "#E8E2D8", justifyContent: "flex-end", padding: 10 }}>
             <Text
               style={{
-                fontFamily: "Courier",
+                fontFamily: "DMSans_400Regular",
                 fontSize: 9,
                 color: "#8A8070",
                 letterSpacing: 1,
@@ -78,7 +78,7 @@ export function PolaroidShare({ item, username }: Props) {
           >
             <Text
               style={{
-                fontFamily: "Courier",
+                fontFamily: "DMSans_400Regular",
                 fontSize: 7,
                 color: "#F5F2EB",
                 letterSpacing: 1.5,
@@ -93,7 +93,7 @@ export function PolaroidShare({ item, username }: Props) {
       {/* Caption */}
       <Text
         style={{
-          fontFamily: "DMSerifDisplay_400Regular",
+          fontFamily: "InstrumentSerif_400Regular",
           fontSize: 18,
           color: "#1A1A1A",
           textAlign: "center",
@@ -104,7 +104,7 @@ export function PolaroidShare({ item, username }: Props) {
       </Text>
       <Text
         style={{
-          fontFamily: "Courier",
+          fontFamily: "DMSans_400Regular",
           fontSize: 9,
           color: "#8A8070",
           letterSpacing: 1,
@@ -135,7 +135,7 @@ export function PolaroidShare({ item, username }: Props) {
       >
         <Text
           style={{
-            fontFamily: "Courier",
+            fontFamily: "DMSans_400Regular",
             fontSize: 9,
             color: "#1A1A1A",
             lineHeight: 14,
@@ -149,7 +149,7 @@ export function PolaroidShare({ item, username }: Props) {
       {/* Footer */}
       <Text
         style={{
-          fontFamily: "Courier",
+          fontFamily: "DMSans_400Regular",
           fontSize: 7,
           color: "#8A8070",
           letterSpacing: 1,

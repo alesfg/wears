@@ -57,14 +57,14 @@ export default function Login() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.cream, paddingHorizontal: 28 }} edges={["top", "bottom"]}>
       <TouchableOpacity onPress={() => router.replace("/(auth)/welcome")} style={{ paddingTop: 16, paddingBottom: 8 }}>
-        <Text style={{ fontFamily: "Courier", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>{"< "}BACK</Text>
+        <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>{"< "}BACK</Text>
       </TouchableOpacity>
 
       <View style={{ flex: 1, justifyContent: "center" }}>
-        <Text style={{ fontFamily: "DMSerifDisplay_400Regular", fontSize: 38, color: Colors.ink, marginBottom: 4 }}>
+        <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 38, color: Colors.ink, marginBottom: 4 }}>
           Wears
         </Text>
-        <Text style={{ fontFamily: "Courier", fontSize: 9, color: Colors.muted, letterSpacing: 2, textTransform: "uppercase", marginBottom: 32 }}>
+        <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 2, textTransform: "uppercase", marginBottom: 32 }}>
           {isSignUp ? "open account" : "sign in"}
         </Text>
 
@@ -88,7 +88,7 @@ export default function Login() {
             )}
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
               <View style={{ flex: 1, height: 1, backgroundColor: Colors.border }} />
-              <Text style={{ fontFamily: "Courier", fontSize: 8, color: Colors.muted, letterSpacing: 1 }}>OR</Text>
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 8, color: Colors.muted, letterSpacing: 1 }}>OR</Text>
               <View style={{ flex: 1, height: 1, backgroundColor: Colors.border }} />
             </View>
           </View>
@@ -97,7 +97,7 @@ export default function Login() {
         {/* Email / password */}
         <View style={{ paddingTop: Platform.OS === "ios" ? 0 : 24, gap: 20 }}>
           <TextInput
-            style={{ fontFamily: "DMSerifDisplay_400Regular", fontSize: 18, color: Colors.ink, borderBottomWidth: 1, borderBottomColor: Colors.border, paddingBottom: 8 }}
+            style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 18, color: Colors.ink, borderBottomWidth: 1, borderBottomColor: Colors.border, paddingBottom: 8 }}
             placeholder="email"
             placeholderTextColor={Colors.muted}
             value={email}
@@ -106,7 +106,7 @@ export default function Login() {
             keyboardType="email-address"
           />
           <TextInput
-            style={{ fontFamily: "DMSerifDisplay_400Regular", fontSize: 18, color: Colors.ink, borderBottomWidth: 1, borderBottomColor: Colors.border, paddingBottom: 8 }}
+            style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 18, color: Colors.ink, borderBottomWidth: 1, borderBottomColor: Colors.border, paddingBottom: 8 }}
             placeholder="password"
             placeholderTextColor={Colors.muted}
             value={password}
@@ -116,7 +116,7 @@ export default function Login() {
         </View>
 
         {error && (
-          <Text style={{ fontFamily: "Courier", fontSize: 10, color: Colors.cpw, marginTop: 12, letterSpacing: 0.5 }}>
+          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.cpw, marginTop: 12, letterSpacing: 0.5 }}>
             {error}
           </Text>
         )}
@@ -130,14 +130,14 @@ export default function Login() {
           {loading ? (
             <ActivityIndicator color={Colors.cream} />
           ) : (
-            <Text style={{ fontFamily: "Courier", fontSize: 11, color: Colors.cream, letterSpacing: 2, textTransform: "uppercase" }}>
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.cream, letterSpacing: 2, textTransform: "uppercase" }}>
               {isSignUp ? "create account" : "sign in"}
             </Text>
           )}
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => setIsSignUp(!isSignUp)} style={{ alignItems: "center", paddingTop: 16 }}>
-          <Text style={{ fontFamily: "Courier", fontSize: 9, color: Colors.muted, letterSpacing: 1 }}>
+          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1 }}>
             {isSignUp ? "already have an account? sign in" : "no account? create one"}
           </Text>
         </TouchableOpacity>

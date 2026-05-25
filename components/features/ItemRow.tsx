@@ -52,7 +52,7 @@ export function ItemRow({ item, onPress }: Props) {
       <View style={{ flex: 1 }}>
         <Text
           style={{
-            fontFamily: "DMSerifDisplay_400Regular",
+            fontFamily: "InstrumentSerif_400Regular",
             fontSize: 15,
             color: Colors.ink,
           }}
@@ -62,9 +62,9 @@ export function ItemRow({ item, onPress }: Props) {
         </Text>
         <Text
           style={{
-            fontFamily: "Courier",
+            fontFamily: "DMSans_400Regular",
             fontSize: 10,
-            color: Colors.muted,
+            color: Colors.badge,
             marginTop: 2,
           }}
         >
@@ -78,7 +78,7 @@ export function ItemRow({ item, onPress }: Props) {
       <View style={{ alignItems: "flex-end" }}>
         <Text
           style={{
-            fontFamily: "DMSerifDisplay_400Regular",
+            fontFamily: "InstrumentSerif_400Regular",
             fontSize: 17,
             color: Colors.cpw,
           }}
@@ -87,7 +87,7 @@ export function ItemRow({ item, onPress }: Props) {
         </Text>
         <Text
           style={{
-            fontFamily: "Courier",
+            fontFamily: "DMSans_400Regular",
             fontSize: 9,
             color: Colors.muted,
             letterSpacing: 0.5,

@@ -1,7 +1,9 @@
 import "../global.css";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useFonts, DMSerifDisplay_400Regular } from "@expo-google-fonts/dm-serif-display";
+import { useFonts } from "expo-font";
+import { InstrumentSerif_400Regular, InstrumentSerif_400Italic } from "@expo-google-fonts/instrument-serif";
+import { DMSans_400Regular, DMSans_500Medium } from "@expo-google-fonts/dm-sans";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -45,7 +47,7 @@ function AuthGuard() {
 }
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({ DMSerifDisplay_400Regular });
+  const [loaded, error] = useFonts({ InstrumentSerif_400Regular, InstrumentSerif_400Italic, DMSans_400Regular, DMSans_500Medium });
 
   useEffect(() => {
     if (loaded || error) SplashScreen.hideAsync();

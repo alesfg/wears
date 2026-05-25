@@ -43,7 +43,7 @@ function Chip({ label }: { label: string }) {
     >
       <Text
         style={{
-          fontFamily: "Courier",
+          fontFamily: "DMSans_400Regular",
           fontSize: 8,
           color: "rgba(255,255,255,0.85)",
           letterSpacing: 1,
@@ -75,7 +75,7 @@ export function WalletPassShare({ item, username }: Props) {
         <View>
           <Text
             style={{
-              fontFamily: "Courier",
+              fontFamily: "DMSans_400Regular",
               fontSize: 7,
               color: "rgba(255,255,255,0.6)",
               letterSpacing: 2,
@@ -86,7 +86,7 @@ export function WalletPassShare({ item, username }: Props) {
           </Text>
           <Text
             style={{
-              fontFamily: "DMSerifDisplay_400Regular",
+              fontFamily: "InstrumentSerif_400Regular",
               fontSize: 16,
               color: "#FFFFFF",
               marginTop: 2,
@@ -97,7 +97,7 @@ export function WalletPassShare({ item, username }: Props) {
         </View>
         <Text
           style={{
-            fontFamily: "DMSerifDisplay_400Regular",
+            fontFamily: "InstrumentSerif_400Regular",
             fontSize: 20,
             color: "rgba(255,255,255,0.4)",
           }}
@@ -109,7 +109,7 @@ export function WalletPassShare({ item, username }: Props) {
       {/* Asset label + name */}
       <Text
         style={{
-          fontFamily: "Courier",
+          fontFamily: "DMSans_400Regular",
           fontSize: 7,
           color: "rgba(255,255,255,0.6)",
           letterSpacing: 2,
@@ -120,7 +120,7 @@ export function WalletPassShare({ item, username }: Props) {
       </Text>
       <Text
         style={{
-          fontFamily: "DMSerifDisplay_400Regular",
+          fontFamily: "InstrumentSerif_400Regular",
           fontSize: 14,
           color: "#FFFFFF",
           marginTop: 1,
@@ -135,7 +135,7 @@ export function WalletPassShare({ item, username }: Props) {
         <View style={{ flex: 1 }}>
           <Text
             style={{
-              fontFamily: "Courier",
+              fontFamily: "DMSans_400Regular",
               fontSize: 7,
               color: "rgba(255,255,255,0.6)",
               letterSpacing: 2,
@@ -145,7 +145,7 @@ export function WalletPassShare({ item, username }: Props) {
           </Text>
           <Text
             style={{
-              fontFamily: "DMSerifDisplay_400Regular",
+              fontFamily: "InstrumentSerif_400Regular",
               fontSize: 32,
               color: "#FFFFFF",
               lineHeight: 38,
@@ -155,7 +155,7 @@ export function WalletPassShare({ item, username }: Props) {
           </Text>
           <Text
             style={{
-              fontFamily: "Courier",
+              fontFamily: "DMSans_400Regular",
               fontSize: 7,
               color: "rgba(255,255,255,0.6)",
               letterSpacing: 1,
@@ -189,7 +189,7 @@ export function WalletPassShare({ item, username }: Props) {
           position: "absolute",
           bottom: 12,
           right: 20,
-          fontFamily: "Courier",
+          fontFamily: "DMSans_400Regular",
           fontSize: 7,
           color: "rgba(255,255,255,0.5)",
           letterSpacing: 1,

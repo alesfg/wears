@@ -16,7 +16,7 @@ export default function TabsLayout() {
         tabBarActiveTintColor: Colors.ink,
         tabBarInactiveTintColor: Colors.muted,
         tabBarLabelStyle: {
-          fontFamily: "Courier",
+          fontFamily: "DMSans_400Regular",
           fontSize: 10,
           letterSpacing: 1.5,
           textTransform: "uppercase",

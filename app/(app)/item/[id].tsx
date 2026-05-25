@@ -48,10 +48,10 @@ function TickerTab({
       <DashedLine />
       {/* CPW hero */}
       <View style={{ alignItems: "center", paddingVertical: 24 }}>
-        <Text style={{ fontFamily: "Courier", fontSize: 9, color: Colors.muted, letterSpacing: 2, marginBottom: 4 }}>
+        <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 2, marginBottom: 4 }}>
           COST PER WEAR
         </Text>
-        <Text style={{ fontFamily: "DMSerifDisplay_400Regular", fontSize: 68, color: Colors.cpw, lineHeight: 76 }}>
+        <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 68, color: Colors.cpw, lineHeight: 76 }}>
           ${item.cpw.toFixed(2)}
         </Text>
       </View>
@@ -61,7 +61,7 @@ function TickerTab({
         <View style={{ height: 2, backgroundColor: Colors.border, marginBottom: 6, overflow: "hidden" }}>
           <View style={{ height: 2, backgroundColor: Colors.cpw, width: `${progress * 100}%` }} />
         </View>
-        <Text style={{ fontFamily: "Courier", fontSize: 9, color: Colors.muted, letterSpacing: 1, textAlign: "center" }}>
+        <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1, textAlign: "center" }}>
           {item.wears.length} WEARS
           {nextTier ? ` · NEXT: ${nextTier.name.toUpperCase()} AT $${nextTier.maxCpw}/WEAR` : " · FREE BASICALLY 🌸"}
         </Text>
@@ -81,12 +81,12 @@ function TickerTab({
       {/* Recent wears */}
       {item.wears.length > 0 && (
         <View style={{ paddingTop: 16, paddingBottom: 8 }}>
-          <Text style={{ fontFamily: "Courier", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>
+          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>
             RECENT WEARS
           </Text>
           {item.wears.slice(0, 4).map((w) => (
             <View key={w.id} style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 6 }}>
-              <Text style={{ fontFamily: "Courier", fontSize: 10, color: Colors.ink }}>
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.ink }}>
                 {w.worn_at.slice(5).replace("-", "/")}
                 {w.occasion ? ` · ${w.occasion}` : ""}
               </Text>
@@ -110,14 +110,14 @@ function ProgressTab({ item }: { item: ItemWithWears }) {
 
       {/* Current tier header */}
       <View style={{ paddingVertical: 20 }}>
-        <Text style={{ fontFamily: "Courier", fontSize: 9, color: Colors.muted, letterSpacing: 2, marginBottom: 8 }}>
+        <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 2, marginBottom: 8 }}>
           CURRENT TIER
         </Text>
         <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between" }}>
-          <Text style={{ fontFamily: "DMSerifDisplay_400Regular", fontSize: 34, color: Colors.ink }}>
+          <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 34, color: Colors.ink }}>
             {currentTier}
           </Text>
-          <Text style={{ fontFamily: "DMSerifDisplay_400Regular", fontSize: 24, color: Colors.cpw }}>
+          <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 24, color: Colors.cpw }}>
             ${item.cpw.toFixed(2)}
           </Text>
         </View>
@@ -153,19 +153,18 @@ function ProgressTab({ item }: { item: ItemWithWears }) {
                 </View>
                 <Text
                   style={{
-                    fontFamily: "Courier",
-                    fontSize: 11,
+                    fontFamily: achieved ? "InstrumentSerif_400Italic" : "DMSans_400Regular",
+                    fontSize: achieved ? 14 : 11,
                     color: achieved ? Colors.ink : Colors.muted,
                     letterSpacing: 0.5,
                     flex: 1,
-                    fontWeight: current ? "bold" : "normal",
                   }}
                 >
                   {tier.name}
                 </Text>
                 <Text
                   style={{
-                    fontFamily: "Courier",
+                    fontFamily: "DMSans_400Regular",
                     fontSize: 10,
                     color: current ? Colors.cpw : achieved ? Colors.ink : Colors.muted,
                   }}
@@ -213,10 +212,10 @@ function LogTab({ item }: { item: ItemWithWears }) {
     <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
       {/* Receipt header */}
       <View style={{ paddingBottom: 16 }}>
-        <Text style={{ fontFamily: "Courier", fontSize: 9, color: Colors.muted, letterSpacing: 1.5 }}>
+        <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5 }}>
           COST ${item.price} · WEARS {item.wears.length} · CPW ${item.cpw.toFixed(2)}
         </Text>
-        <Text style={{ fontFamily: "Courier", fontSize: 9, color: Colors.muted, letterSpacing: 1, marginTop: 4 }}>
+        <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1, marginTop: 4 }}>
           LOG {item.name.toUpperCase()} SINCE {acquired.toUpperCase()}
         </Text>
       </View>
@@ -233,7 +232,7 @@ function LogTab({ item }: { item: ItemWithWears }) {
       <DashedLine />
 
       {item.wears.length === 0 ? (
-        <Text style={{ fontFamily: "Courier", fontSize: 10, color: Colors.muted, textAlign: "center", paddingVertical: 24 }}>
+        <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, textAlign: "center", paddingVertical: 24 }}>
           NO WEARS LOGGED YET
         </Text>
       ) : (
@@ -257,17 +256,17 @@ function LogTab({ item }: { item: ItemWithWears }) {
 
           <DashedLine style={{ marginTop: 8 }} />
           <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 12 }}>
-            <Text style={{ fontFamily: "Courier", fontSize: 10, color: Colors.muted }}>TOTAL WEARS</Text>
-            <Text style={{ fontFamily: "Courier", fontSize: 10, color: Colors.ink }}>{item.wears.length}</Text>
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted }}>TOTAL WEARS</Text>
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.ink }}>{item.wears.length}</Text>
           </View>
           <View style={{ flexDirection: "row", justifyContent: "space-between", paddingBottom: 16 }}>
-            <Text style={{ fontFamily: "Courier", fontSize: 10, color: Colors.muted }}>NET CPW</Text>
-            <Text style={{ fontFamily: "DMSerifDisplay_400Regular", fontSize: 16, color: Colors.cpw }}>
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted }}>NET CPW</Text>
+            <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 16, color: Colors.cpw }}>
               ${item.cpw.toFixed(2)}
             </Text>
           </View>
           <DashedLine />
-          <Text style={{ fontFamily: "Courier", fontSize: 9, color: Colors.muted, textAlign: "center", letterSpacing: 2, paddingVertical: 12 }}>
+          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, textAlign: "center", letterSpacing: 2, paddingVertical: 12 }}>
             * KEEP THIS RECEIPT *
           </Text>
         </>
@@ -318,7 +317,7 @@ export default function ItemDetail() {
       {/* Nav bar */}
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 12 }}>
         <TouchableOpacity onPress={() => router.back()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-          <Text style={{ fontFamily: "Courier", fontSize: 9, color: Colors.muted, letterSpacing: 1 }}>
+          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1 }}>
             {"< "}CLOSET{item.category ? ` / ${item.category.toUpperCase()}` : ""}
           </Text>
         </TouchableOpacity>
@@ -326,7 +325,7 @@ export default function ItemDetail() {
           onPress={() => router.push({ pathname: "/modal/share", params: { id: item.id } })}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
-          <Text style={{ fontFamily: "Courier", fontSize: 11, color: Colors.ink, letterSpacing: 0.5 }}>···</Text>
+          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.ink, letterSpacing: 0.5 }}>···</Text>
         </TouchableOpacity>
       </View>
 
@@ -338,7 +337,7 @@ export default function ItemDetail() {
           ) : (
             <View style={{ width, height: width, backgroundColor: "#E8E2D8", justifyContent: "flex-end", padding: 16 }}>
               {item.category && (
-                <Text style={{ fontFamily: "Courier", fontSize: 10, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase" }}>
+                <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase" }}>
                   {item.category} · {item.name.split(" ").pop()?.toUpperCase()}
                 </Text>
               )}
@@ -351,10 +350,10 @@ export default function ItemDetail() {
 
         {/* Item name + meta */}
         <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 4 }}>
-          <Text style={{ fontFamily: "Courier", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>
+          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>
             {item.brand ? `${item.brand.toUpperCase()} · ` : ""}ACQUIRED {acquiredLabel}
           </Text>
-          <Text style={{ fontFamily: "DMSerifDisplay_400Regular", fontSize: 28, color: Colors.ink }}>
+          <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 28, color: Colors.ink }}>
             {item.name}
           </Text>
         </View>
@@ -375,7 +374,7 @@ export default function ItemDetail() {
             >
               <Text
                 style={{
-                  fontFamily: "Courier",
+                  fontFamily: "DMSans_400Regular",
                   fontSize: 9,
                   color: activeTab === tab ? Colors.ink : Colors.muted,
                   letterSpacing: 1.5,
@@ -409,7 +408,7 @@ export default function ItemDetail() {
             zIndex: 10,
           }}
         >
-          <Text style={{ fontFamily: "Courier", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, marginBottom: 12 }}>
+          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, marginBottom: 12 }}>
             OCCASION (OPTIONAL)
           </Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
@@ -417,7 +416,7 @@ export default function ItemDetail() {
               onPress={() => handleLogWear(undefined)}
               style={{ paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: Colors.border }}
             >
-              <Text style={{ fontFamily: "Courier", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>SKIP</Text>
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>SKIP</Text>
             </TouchableOpacity>
             {OCCASIONS.map((occ) => (
               <TouchableOpacity
@@ -426,7 +425,7 @@ export default function ItemDetail() {
                 style={{ paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: Colors.border }}
                 activeOpacity={0.7}
               >
-                <Text style={{ fontFamily: "Courier", fontSize: 10, color: Colors.ink, letterSpacing: 1 }}>
+                <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.ink, letterSpacing: 1 }}>
                   {occ.toUpperCase()}
                 </Text>
               </TouchableOpacity>
@@ -446,7 +445,7 @@ export default function ItemDetail() {
           {logging ? (
             <ActivityIndicator color={Colors.cream} />
           ) : (
-            <Text style={{ fontFamily: "Courier", fontSize: 11, color: Colors.cream, letterSpacing: 2, textTransform: "uppercase" }}>
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.cream, letterSpacing: 2, textTransform: "uppercase" }}>
               + I wore this today
             </Text>
           )}
@@ -459,11 +458,11 @@ export default function ItemDetail() {
 function StatCell({ label, value }: { label: string; value: string }) {
   return (
     <View style={{ alignItems: "center" }}>
-      <Text style={{ fontFamily: "DMSerifDisplay_400Regular", fontSize: 20, color: Colors.ink }}>{value}</Text>
-      <Text style={{ fontFamily: "Courier", fontSize: 9, color: Colors.muted, letterSpacing: 1, textTransform: "uppercase", marginTop: 2 }}>{label}</Text>
+      <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 20, color: Colors.ink }}>{value}</Text>
+      <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1, textTransform: "uppercase", marginTop: 2 }}>{label}</Text>
     </View>
   );
 }
 
-const colHeader = { fontFamily: "Courier", fontSize: 8, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase" as const };
-const rowText = { fontFamily: "Courier", fontSize: 10, color: Colors.muted };
+const colHeader = { fontFamily: "DMSans_400Regular", fontSize: 8, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase" as const };
+const rowText = { fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.ink };

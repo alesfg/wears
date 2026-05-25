@@ -134,11 +134,11 @@ export default function AddItem() {
           }}
         >
           <TouchableOpacity onPress={() => router.back()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-            <Text style={{ fontFamily: "Courier", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>
               CANCEL
             </Text>
           </TouchableOpacity>
-          <Text style={{ fontFamily: "Courier", fontSize: 10, color: Colors.ink, letterSpacing: 2, textTransform: "uppercase" }}>
+          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.ink, letterSpacing: 2, textTransform: "uppercase" }}>
             New Asset
           </Text>
           <View style={{ width: 44 }} />
@@ -175,7 +175,7 @@ export default function AddItem() {
             ) : (
               <Text
                 style={{
-                  fontFamily: "Courier",
+                  fontFamily: "DMSans_400Regular",
                   fontSize: 10,
                   color: Colors.muted,
                   letterSpacing: 1.5,
@@ -255,7 +255,7 @@ export default function AddItem() {
                   >
                     <Text
                       style={{
-                        fontFamily: "Courier",
+                        fontFamily: "DMSans_400Regular",
                         fontSize: 10,
                         color: category === cat ? Colors.cream : Colors.muted,
                         letterSpacing: 1,
@@ -273,7 +273,7 @@ export default function AddItem() {
           {error && (
             <Text
               style={{
-                fontFamily: "Courier",
+                fontFamily: "DMSans_400Regular",
                 fontSize: 10,
                 color: Colors.cpw,
                 marginBottom: 12,
@@ -300,7 +300,7 @@ export default function AddItem() {
             ) : (
               <Text
                 style={{
-                  fontFamily: "Courier",
+                  fontFamily: "DMSans_400Regular",
                   fontSize: 11,
                   color: Colors.cream,
                   letterSpacing: 2,
@@ -327,7 +327,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 const labelStyle = {
-  fontFamily: "Courier",
+  fontFamily: "DMSans_400Regular",
   fontSize: 9,
   color: Colors.muted,
   letterSpacing: 1.5,
@@ -336,7 +336,7 @@ const labelStyle = {
 };
 
 const inputStyle = {
-  fontFamily: "DMSerifDisplay_400Regular",
+  fontFamily: "InstrumentSerif_400Regular",
   fontSize: 18,
   color: Colors.ink,
   borderBottomWidth: 1,

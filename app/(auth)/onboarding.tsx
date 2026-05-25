@@ -66,13 +66,13 @@ export default function Onboarding() {
 
         {/* Top: step + headline */}
         <View>
-          <Text style={{ fontFamily: "Courier", fontSize: 9, color: Colors.muted, letterSpacing: 2, textTransform: "uppercase", marginBottom: 20 }}>
+          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 2, textTransform: "uppercase", marginBottom: 20 }}>
             {current.step}
           </Text>
-          <Text style={{ fontFamily: "Courier", fontSize: 9, color: Colors.cpw, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>
+          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.cpw, letterSpacing: 2, textTransform: "uppercase", marginBottom: 8 }}>
             {current.eyebrow}
           </Text>
-          <Text style={{ fontFamily: "DMSerifDisplay_400Regular", fontSize: 36, color: Colors.ink, lineHeight: 42, marginBottom: 24 }}>
+          <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 36, color: Colors.ink, lineHeight: 42, marginBottom: 24 }}>
             {current.title}
           </Text>
           <DashedLine marginVertical={0} />
@@ -80,15 +80,15 @@ export default function Onboarding() {
 
         {/* Middle: CPW hero + body */}
         <View style={{ alignItems: "center", gap: 4 }}>
-          <Text style={{ fontFamily: "DMSerifDisplay_400Regular", fontSize: 72, color: Colors.cpw, letterSpacing: -1 }}>
+          <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 72, color: Colors.cpw, letterSpacing: -1 }}>
             {current.cpw}
           </Text>
-          <Text style={{ fontFamily: "Courier", fontSize: 9, color: Colors.muted, letterSpacing: 2, textTransform: "uppercase", marginBottom: 28 }}>
+          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 2, textTransform: "uppercase", marginBottom: 28 }}>
             {current.label}
           </Text>
           <DashedLine marginVertical={0} />
           <View style={{ paddingTop: 20, width: "100%" }}>
-            <Text style={{ fontFamily: "Courier", fontSize: 12, color: Colors.ink, lineHeight: 22, letterSpacing: 0.3 }}>
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 12, color: Colors.ink, lineHeight: 22, letterSpacing: 0.3 }}>
               {current.body}
             </Text>
           </View>
@@ -115,14 +115,14 @@ export default function Onboarding() {
             style={{ backgroundColor: Colors.ink, paddingVertical: 16, alignItems: "center" }}
             activeOpacity={0.85}
           >
-            <Text style={{ fontFamily: "Courier", fontSize: 11, color: Colors.cream, letterSpacing: 2, textTransform: "uppercase" }}>
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.cream, letterSpacing: 2, textTransform: "uppercase" }}>
               {current.cta}
             </Text>
           </TouchableOpacity>
 
           {step === 1 && (
             <TouchableOpacity onPress={skip} style={{ paddingVertical: 14, alignItems: "center" }}>
-              <Text style={{ fontFamily: "Courier", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>
                 Skip for now
               </Text>
             </TouchableOpacity>

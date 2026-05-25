@@ -63,7 +63,7 @@ export default function Paywall() {
         style={{ alignSelf: "flex-end", padding: 20 }}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
-        <Text style={{ fontFamily: "Courier", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>
+        <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>
           ✕
         </Text>
       </TouchableOpacity>
@@ -72,7 +72,7 @@ export default function Paywall() {
         {/* Wordmark */}
         <Text
           style={{
-            fontFamily: "DMSerifDisplay_400Regular",
+            fontFamily: "InstrumentSerif_400Regular",
             fontSize: 38,
             color: Colors.ink,
             textAlign: "center",
@@ -83,7 +83,7 @@ export default function Paywall() {
         </Text>
         <Text
           style={{
-            fontFamily: "Courier",
+            fontFamily: "DMSans_400Regular",
             fontSize: 9,
             color: Colors.muted,
             textAlign: "center",
@@ -101,10 +101,10 @@ export default function Paywall() {
         <View style={{ paddingVertical: 20, gap: 14 }}>
           {FEATURES.map((f) => (
             <View key={f} style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-              <Text style={{ fontFamily: "Courier", fontSize: 11, color: Colors.cpw }}>✓</Text>
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.cpw }}>✓</Text>
               <Text
                 style={{
-                  fontFamily: "Courier",
+                  fontFamily: "DMSans_400Regular",
                   fontSize: 10,
                   color: Colors.ink,
                   letterSpacing: 1,
@@ -138,7 +138,7 @@ export default function Paywall() {
               <View style={{ alignItems: "center" }}>
                 <Text
                   style={{
-                    fontFamily: "Courier",
+                    fontFamily: "DMSans_400Regular",
                     fontSize: 11,
                     color: Colors.cream,
                     letterSpacing: 2,
@@ -149,7 +149,7 @@ export default function Paywall() {
                 </Text>
                 <Text
                   style={{
-                    fontFamily: "Courier",
+                    fontFamily: "DMSans_400Regular",
                     fontSize: 9,
                     color: "rgba(245,242,235,0.6)",
                     letterSpacing: 1,
@@ -181,7 +181,7 @@ export default function Paywall() {
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                   <Text
                     style={{
-                      fontFamily: "Courier",
+                      fontFamily: "DMSans_400Regular",
                       fontSize: 11,
                       color: Colors.ink,
                       letterSpacing: 2,
@@ -191,14 +191,14 @@ export default function Paywall() {
                     $29.99 / YEAR
                   </Text>
                   <View style={{ backgroundColor: Colors.cpw, paddingHorizontal: 6, paddingVertical: 2 }}>
-                    <Text style={{ fontFamily: "Courier", fontSize: 8, color: Colors.cream, letterSpacing: 1 }}>
+                    <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 8, color: Colors.cream, letterSpacing: 1 }}>
                       SAVE 50%
                     </Text>
                   </View>
                 </View>
                 <Text
                   style={{
-                    fontFamily: "Courier",
+                    fontFamily: "DMSans_400Regular",
                     fontSize: 9,
                     color: Colors.muted,
                     letterSpacing: 1,
@@ -221,7 +221,7 @@ export default function Paywall() {
           {loading === "restore" ? (
             <ActivityIndicator color={Colors.muted} size="small" />
           ) : (
-            <Text style={{ fontFamily: "Courier", fontSize: 9, color: Colors.muted, letterSpacing: 1 }}>
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1 }}>
               Restore Purchases
             </Text>
           )}
@@ -229,7 +229,7 @@ export default function Paywall() {
 
         <Text
           style={{
-            fontFamily: "Courier",
+            fontFamily: "DMSans_400Regular",
             fontSize: 8,
             color: Colors.muted,
             textAlign: "center",

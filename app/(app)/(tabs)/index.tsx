@@ -28,10 +28,10 @@ function formatPeriod() {
 function StatRow({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
     <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", paddingVertical: 4 }}>
-      <Text style={{ fontFamily: "Courier", fontSize: 10, color: Colors.muted, letterSpacing: 1, textTransform: "uppercase" }}>
+      <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1, textTransform: "uppercase" }}>
         {label}
       </Text>
-      <Text style={{ fontFamily: highlight ? "DMSerifDisplay_400Regular" : "Courier", fontSize: highlight ? 22 : 12, color: highlight ? Colors.cpw : Colors.ink }}>
+      <Text style={{ fontFamily: highlight ? "InstrumentSerif_400Regular" : "DMSans_400Regular", fontSize: highlight ? 22 : 12, color: highlight ? Colors.cpw : Colors.ink }}>
         {value}
       </Text>
     </View>
@@ -43,10 +43,10 @@ function ListHeader({ username, totalCostBasis, totalWears, pieces, blendedCpw }
 }) {
   return (
     <View style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 4 }}>
-      <Text style={{ fontFamily: "DMSerifDisplay_400Regular", fontSize: 32, color: Colors.ink, textAlign: "center", letterSpacing: 1 }}>
+      <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 32, color: Colors.ink, textAlign: "center", letterSpacing: 1 }}>
         Wears
       </Text>
-      <Text style={{ fontFamily: "Courier", fontSize: 9, color: Colors.muted, textAlign: "center", letterSpacing: 2, textTransform: "uppercase", marginBottom: 16 }}>
+      <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, textAlign: "center", letterSpacing: 2, textTransform: "uppercase", marginBottom: 16 }}>
         QUARTERLY · {username} · {formatPeriod()}
       </Text>
       <DashedLine marginVertical={4} />
@@ -61,8 +61,8 @@ function ListHeader({ username, totalCostBasis, totalWears, pieces, blendedCpw }
       </View>
       <DashedLine marginVertical={4} />
       <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 8 }}>
-        <Text style={{ fontFamily: "Courier", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase" }}>ITEM</Text>
-        <Text style={{ fontFamily: "Courier", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase" }}>CPW</Text>
+        <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase" }}>ITEM</Text>
+        <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase" }}>CPW</Text>
       </View>
       <DashedLine />
     </View>
@@ -74,32 +74,32 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
     <View style={{ alignItems: "center", paddingTop: 48, paddingHorizontal: 32 }}>
       {/* Receipt stub */}
       <View style={{ width: "100%", borderWidth: 1, borderColor: Colors.border, borderStyle: "dashed", padding: 24, alignItems: "center", gap: 12 }}>
-        <Text style={{ fontFamily: "Courier", fontSize: 9, color: Colors.muted, letterSpacing: 2, textTransform: "uppercase" }}>
+        <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 2, textTransform: "uppercase" }}>
           PORTFOLIO SUMMARY
         </Text>
         <View style={{ width: "100%", height: 1, borderBottomWidth: 1, borderBottomColor: Colors.border, borderStyle: "dashed" }} />
 
         {["—", "—", "—"].map((_, i) => (
           <View key={i} style={{ flexDirection: "row", justifyContent: "space-between", width: "100%", opacity: 0.3 }}>
-            <Text style={{ fontFamily: "Courier", fontSize: 11, color: Colors.ink }}>item #{i + 1}</Text>
-            <Text style={{ fontFamily: "Courier", fontSize: 11, color: Colors.ink }}>$—.—/wear</Text>
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.ink }}>item #{i + 1}</Text>
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.ink }}>$—.—/wear</Text>
           </View>
         ))}
 
         <View style={{ width: "100%", height: 1, borderBottomWidth: 1, borderBottomColor: Colors.border, borderStyle: "dashed" }} />
 
-        <Text style={{ fontFamily: "DMSerifDisplay_400Regular", fontSize: 38, color: Colors.cpw, opacity: 0.25 }}>
+        <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 38, color: Colors.cpw, opacity: 0.25 }}>
           $0.00
         </Text>
-        <Text style={{ fontFamily: "Courier", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase" }}>
+        <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase" }}>
           BLENDED CPW
         </Text>
       </View>
 
-      <Text style={{ fontFamily: "DMSerifDisplay_400Regular", fontSize: 20, color: Colors.ink, textAlign: "center", marginTop: 28, marginBottom: 6 }}>
+      <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 20, color: Colors.ink, textAlign: "center", marginTop: 28, marginBottom: 6 }}>
         Your closet awaits.
       </Text>
-      <Text style={{ fontFamily: "Courier", fontSize: 10, color: Colors.muted, textAlign: "center", letterSpacing: 0.8, lineHeight: 18, marginBottom: 28 }}>
+      <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, textAlign: "center", letterSpacing: 0.8, lineHeight: 18, marginBottom: 28 }}>
         Add your first piece and start justifying{"\n"}every purchase you&apos;ve ever made.
       </Text>
 
@@ -108,7 +108,7 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
         style={{ backgroundColor: Colors.ink, paddingVertical: 16, paddingHorizontal: 40, alignItems: "center", width: "100%" }}
         activeOpacity={0.85}
       >
-        <Text style={{ fontFamily: "Courier", fontSize: 11, color: Colors.cream, letterSpacing: 2, textTransform: "uppercase" }}>
+        <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.cream, letterSpacing: 2, textTransform: "uppercase" }}>
           + Add First Item
         </Text>
       </TouchableOpacity>
@@ -168,7 +168,7 @@ export default function ClosetLedger() {
         activeOpacity={0.7}
         hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
       >
-        <Text style={{ fontFamily: "Courier", fontSize: 10, color: Colors.ink, letterSpacing: 1.5 }}>+ ADD</Text>
+        <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.ink, letterSpacing: 1.5 }}>+ ADD</Text>
       </TouchableOpacity>
 
       <FlatList
@@ -203,7 +203,7 @@ export default function ClosetLedger() {
             style={{ backgroundColor: Colors.ink, paddingVertical: 16, alignItems: "center" }}
             activeOpacity={0.85}
           >
-            <Text style={{ fontFamily: "Courier", fontSize: 11, color: Colors.cream, letterSpacing: 2, textTransform: "uppercase" }}>
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.cream, letterSpacing: 2, textTransform: "uppercase" }}>
               + Log Today&apos;s Wear
             </Text>
           </TouchableOpacity>
@@ -224,11 +224,11 @@ export default function ClosetLedger() {
         />
         <View style={{ backgroundColor: Colors.cream, maxHeight: "60%", borderTopWidth: 1, borderTopColor: Colors.border }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, paddingVertical: 14 }}>
-            <Text style={{ fontFamily: "Courier", fontSize: 9, color: Colors.muted, letterSpacing: 2, textTransform: "uppercase" }}>
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 2, textTransform: "uppercase" }}>
               WHAT DID YOU WEAR TODAY?
             </Text>
             <TouchableOpacity onPress={() => setShowWearPicker(false)} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-              <Text style={{ fontFamily: "Courier", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>✕</Text>
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>✕</Text>
             </TouchableOpacity>
           </View>
           <DashedLine />
@@ -244,10 +244,10 @@ export default function ClosetLedger() {
                 activeOpacity={0.7}
               >
                 <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, paddingVertical: 14 }}>
-                  <Text style={{ fontFamily: "DMSerifDisplay_400Regular", fontSize: 16, color: Colors.ink, flex: 1 }} numberOfLines={1}>
+                  <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 16, color: Colors.ink, flex: 1 }} numberOfLines={1}>
                     {item.name}
                   </Text>
-                  <Text style={{ fontFamily: "Courier", fontSize: 10, color: Colors.cpw, letterSpacing: 0.5 }}>
+                  <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.cpw, letterSpacing: 0.5 }}>
                     ${item.cpw.toFixed(2)}/wear
                   </Text>
                 </View>

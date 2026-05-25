@@ -9,6 +9,8 @@ export const Colors = {
 } as const;
 
 export const FontFamily = {
-  serif: "DMSerifDisplay_400Regular",
-  mono: "Courier",
+  serif: "InstrumentSerif_400Regular",
+  serifItalic: "InstrumentSerif_400Italic",
+  sans: "DMSans_400Regular",
+  sansMedium: "DMSans_500Medium",
 } as const;
