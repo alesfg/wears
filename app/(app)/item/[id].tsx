@@ -153,7 +153,7 @@ function ProgressTab({ item }: { item: ItemWithWears }) {
                 </View>
                 <Text
                   style={{
-                    fontFamily: achieved ? "InstrumentSerif_400Italic" : "DMSans_400Regular",
+                    fontFamily: achieved ? "InstrumentSerif_400Regular_Italic" : "DMSans_400Regular",
                     fontSize: achieved ? 14 : 11,
                     color: achieved ? Colors.ink : Colors.muted,
                     letterSpacing: 0.5,

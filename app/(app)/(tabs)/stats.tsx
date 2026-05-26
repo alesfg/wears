@@ -1,6 +1,7 @@
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useMemo } from "react";
+import { useRouter } from "expo-router";
 import { useItemStore } from "@/store/itemStore";
 import { useUserStore } from "@/store/userStore";
 import { DashedLine } from "@/components/ui/DashedLine";
@@ -26,6 +27,7 @@ function StatRow({ label, value, highlight }: { label: string; value: string; hi
 }
 
 export default function Stats() {
+  const router = useRouter();
   const { items } = useItemStore();
   const { user } = useUserStore();
 
@@ -71,6 +73,30 @@ export default function Stats() {
           <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, textAlign: "center", letterSpacing: 2, textTransform: "uppercase", marginBottom: 16 }}>
             PORTFOLIO REPORT · {username} · {period}
           </Text>
+          <DashedLine marginVertical={0} />
+        </View>
+
+        {/* ── Wrapped CTA ── */}
+        <TouchableOpacity
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          onPress={() => router.push("/modal/wrapped" as any)}
+          activeOpacity={0.88}
+          style={{ marginHorizontal: 20, marginTop: 12, marginBottom: 4, overflow: "hidden" }}
+        >
+          <View style={{ backgroundColor: "#1A0D06", paddingVertical: 18, paddingHorizontal: 20, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+            <View>
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: "rgba(245,242,235,0.45)", letterSpacing: 2.5, textTransform: "uppercase", marginBottom: 4 }}>
+                ANNUAL EARNINGS REPORT
+              </Text>
+              <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 26, color: "#F5F2EB" }}>
+                Wears <Text style={{ color: Colors.cpw }}>&apos;{new Date().getFullYear().toString().slice(-2)}</Text>
+              </Text>
+            </View>
+            <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 22, color: "rgba(245,242,235,0.6)" }}>→</Text>
+          </View>
+        </TouchableOpacity>
+
+        <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4 }}>
           <DashedLine marginVertical={0} />
         </View>
 

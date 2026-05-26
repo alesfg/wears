@@ -20,3 +20,8 @@ export const useUserStore = create<UserState>((set) => ({
   setLoading: (isLoading) => set({ isLoading }),
   reset: () => set({ user: null, session: null, isLoading: false }),
 }));
+
+// Named export so index.tsx can call setSession after updateUser
+export const userStoreActions = {
+  setSession: (session: Session | null) => useUserStore.getState().setSession(session),
+};

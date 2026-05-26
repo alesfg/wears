@@ -1,55 +1,149 @@
 import { View, Text, Image } from "react-native";
 import type { ItemWithWears } from "@/lib/database.types";
+import { isProfitable } from "@/constants/config";
 
 interface Props {
   item: ItemWithWears;
   username: string;
 }
 
+const CANVAS_W = 360;
+const POLAROID_W = 272;
+const PHOTO_SIZE = 230;
+const FRAME_PAD = 11; // white border on top + sides
+const BOTTOM_H = 82;  // white polaroid bottom section
+
 export function PolaroidShare({ item, username }: Props) {
+  const photoW = POLAROID_W - FRAME_PAD * 2;
+  const categoryLabel = [item.category?.toUpperCase(), item.brand?.toUpperCase()]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
     <View
       style={{
-        width: 280,
-        backgroundColor: "#FAF7F2",
+        width: CANVAS_W,
+        backgroundColor: "#EDE8DF",
         alignItems: "center",
-        paddingTop: 12,
-        paddingBottom: 32,
-        paddingHorizontal: 12,
+        paddingTop: 52,
+        paddingBottom: 40,
       }}
     >
-      {/* Tape decoration */}
-      <View
-        style={{
-          width: 40,
-          height: 16,
-          backgroundColor: "rgba(212, 205, 192, 0.7)",
-          position: "absolute",
-          top: -8,
-          alignSelf: "center",
-        }}
-      />
+      {/* Wrapper: defines stacking context for polaroid + sticky note */}
+      <View style={{ width: POLAROID_W + 40 }}>
 
-      {/* Photo frame */}
-      <View
-        style={{
-          width: 256,
-          height: 256,
-          backgroundColor: "#E8E2D8",
-          overflow: "hidden",
-          marginBottom: 12,
-          borderWidth: 1,
-          borderColor: "#D9D3C7",
-        }}
-      >
-        {item.image_url ? (
-          <Image
-            source={{ uri: item.image_url }}
-            style={{ width: 256, height: 256 }}
-            resizeMode="cover"
-          />
-        ) : (
-          <View style={{ flex: 1, backgroundColor: "#E8E2D8", justifyContent: "flex-end", padding: 10 }}>
+        {/* Tape — sits above and overlaps the top of the polaroid */}
+        <View
+          style={{
+            alignSelf: "center",
+            width: 48,
+            height: 18,
+            backgroundColor: "rgba(190,170,142,0.55)",
+            marginBottom: -9,
+            zIndex: 3,
+          }}
+        />
+
+        {/* Polaroid card */}
+        <View
+          style={{
+            width: POLAROID_W,
+            alignSelf: "center",
+            backgroundColor: "#FAF8F4",
+            transform: [{ rotate: "-2.5deg" }],
+            shadowColor: "#000",
+            shadowOpacity: 0.16,
+            shadowRadius: 20,
+            shadowOffset: { width: 4, height: 8 },
+            elevation: 8,
+            zIndex: 1,
+          }}
+        >
+          {/* Top frame */}
+          <View style={{ height: FRAME_PAD }} />
+
+          {/* Photo area */}
+          <View
+            style={{
+              marginHorizontal: FRAME_PAD,
+              height: PHOTO_SIZE,
+              width: photoW,
+              backgroundColor: "#C5B49A",
+              overflow: "hidden",
+            }}
+          >
+            {item.image_url ? (
+              <Image
+                source={{ uri: item.image_url }}
+                style={{ width: photoW, height: PHOTO_SIZE }}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={{ flex: 1, backgroundColor: "#C5B49A" }} />
+            )}
+
+            {/* PROFITABLE badge — top-right, outlined */}
+            {isProfitable(item.cpw) && (
+              <View
+                style={{
+                  position: "absolute",
+                  top: 10,
+                  right: 10,
+                  borderWidth: 1.5,
+                  borderColor: "rgba(255,255,255,0.85)",
+                  paddingHorizontal: 7,
+                  paddingVertical: 3,
+                }}
+              >
+                <Text
+                  style={{
+                    fontFamily: "DMSans_400Regular",
+                    fontSize: 7,
+                    color: "rgba(255,255,255,0.9)",
+                    letterSpacing: 1.5,
+                  }}
+                >
+                  PROFITABLE
+                </Text>
+              </View>
+            )}
+
+            {/* Category + color label — bottom-left */}
+            {categoryLabel ? (
+              <View style={{ position: "absolute", bottom: 10, left: 10 }}>
+                <Text
+                  style={{
+                    fontFamily: "DMSans_400Regular",
+                    fontSize: 7,
+                    color: "rgba(255,255,255,0.6)",
+                    letterSpacing: 1.5,
+                  }}
+                >
+                  {categoryLabel}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+
+          {/* White bottom section */}
+          <View
+            style={{
+              height: BOTTOM_H,
+              paddingHorizontal: 16,
+              justifyContent: "center",
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: "InstrumentSerif_400Regular_Italic",
+                fontSize: 24,
+                color: "#1A1A1A",
+                lineHeight: 30,
+              }}
+            >
+              ${item.cpw.toFixed(2)} / wear{" "}
+              <Text style={{ fontSize: 17 }}>🌸</Text>
+            </Text>
             <Text
               style={{
                 fontFamily: "DMSans_400Regular",
@@ -57,107 +151,68 @@ export function PolaroidShare({ item, username }: Props) {
                 color: "#8A8070",
                 letterSpacing: 1,
                 textTransform: "uppercase",
+                marginTop: 5,
               }}
             >
-              {item.category ?? ""} · {item.name.split(" ").pop()?.toUpperCase()}
+              {item.name.toUpperCase()} · {item.wears.length}× WORN
             </Text>
           </View>
-        )}
+        </View>
 
-        {/* PROFITABLE badge overlay */}
-        {item.cpw <= 25 && (
-          <View
-            style={{
-              position: "absolute",
-              top: 10,
-              right: 10,
-              backgroundColor: "#5C5347",
-              paddingHorizontal: 8,
-              paddingVertical: 3,
-            }}
-          >
-            <Text
-              style={{
-                fontFamily: "DMSans_400Regular",
-                fontSize: 7,
-                color: "#F5F2EB",
-                letterSpacing: 1.5,
-              }}
-            >
-              PROFITABLE
-            </Text>
-          </View>
-        )}
-      </View>
-
-      {/* Caption */}
-      <Text
-        style={{
-          fontFamily: "InstrumentSerif_400Regular",
-          fontSize: 18,
-          color: "#1A1A1A",
-          textAlign: "center",
-        }}
-      >
-        ${item.cpw.toFixed(2)}/wear{" "}
-        <Text style={{ fontSize: 14 }}>🌸</Text>
-      </Text>
-      <Text
-        style={{
-          fontFamily: "DMSans_400Regular",
-          fontSize: 9,
-          color: "#8A8070",
-          letterSpacing: 1,
-          textTransform: "uppercase",
-          marginTop: 4,
-          textAlign: "center",
-        }}
-      >
-        {item.name.toUpperCase()} · {item.wears.length}+ WORN
-      </Text>
-
-      {/* Sticky note */}
-      <View
-        style={{
-          position: "absolute",
-          bottom: 16,
-          right: 12,
-          width: 90,
-          backgroundColor: "#F5F0E0",
-          padding: 8,
-          transform: [{ rotate: "3deg" }],
-          shadowColor: "#000",
-          shadowOffset: { width: 1, height: 2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 2,
-          elevation: 2,
-        }}
-      >
-        <Text
+        {/* Sticky note — overlapping bottom-right of polaroid */}
+        <View
           style={{
-            fontFamily: "DMSans_400Regular",
-            fontSize: 9,
-            color: "#1A1A1A",
-            lineHeight: 14,
+            position: "absolute",
+            right: 0,
+            bottom: 10,
+            width: 90,
+            backgroundColor: "#F4EFD8",
+            paddingVertical: 10,
+            paddingHorizontal: 10,
+            transform: [{ rotate: "4deg" }],
+            shadowColor: "#000",
+            shadowOffset: { width: 1, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            elevation: 4,
+            zIndex: 5,
           }}
         >
-          cost basis:{"\n"}
-          <Text style={{ fontWeight: "bold" }}>justified</Text>
-        </Text>
+          <Text
+            style={{
+              fontFamily: "DMSans_400Regular",
+              fontSize: 8,
+              color: "#5A4E40",
+              lineHeight: 13,
+            }}
+          >
+            cost basis
+          </Text>
+          <Text
+            style={{
+              fontFamily: "InstrumentSerif_400Regular_Italic",
+              fontSize: 19,
+              color: "#1A1A1A",
+              lineHeight: 24,
+            }}
+          >
+            justified
+          </Text>
+        </View>
       </View>
 
       {/* Footer */}
       <Text
         style={{
           fontFamily: "DMSans_400Regular",
-          fontSize: 7,
-          color: "#8A8070",
-          letterSpacing: 1,
-          marginTop: 8,
+          fontSize: 8,
+          color: "rgba(100,88,74,0.45)",
+          letterSpacing: 1.5,
           textAlign: "center",
+          marginTop: 28,
         }}
       >
-        © wears · @{username.toLowerCase()}
+        ◦ wears · @{username.toLowerCase()}
       </Text>
     </View>
   );

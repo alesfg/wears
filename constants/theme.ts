@@ -10,7 +10,7 @@ export const Colors = {
 
 export const FontFamily = {
   serif: "InstrumentSerif_400Regular",
-  serifItalic: "InstrumentSerif_400Italic",
+  serifItalic: "InstrumentSerif_400Regular_Italic",
   sans: "DMSans_400Regular",
   sansMedium: "DMSans_500Medium",
 } as const;

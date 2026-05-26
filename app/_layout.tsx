@@ -2,7 +2,7 @@ import "../global.css";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
-import { InstrumentSerif_400Regular, InstrumentSerif_400Italic } from "@expo-google-fonts/instrument-serif";
+import { InstrumentSerif_400Regular, InstrumentSerif_400Regular_Italic } from "@expo-google-fonts/instrument-serif";
 import { DMSans_400Regular, DMSans_500Medium } from "@expo-google-fonts/dm-sans";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
@@ -47,7 +47,7 @@ function AuthGuard() {
 }
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({ InstrumentSerif_400Regular, InstrumentSerif_400Italic, DMSans_400Regular, DMSans_500Medium });
+  const [loaded, error] = useFonts({ InstrumentSerif_400Regular, InstrumentSerif_400Regular_Italic, DMSans_400Regular, DMSans_500Medium });
 
   useEffect(() => {
     if (loaded || error) SplashScreen.hideAsync();
@@ -66,6 +66,7 @@ export default function RootLayout() {
           <Stack.Screen name="modal/add-item" options={{ presentation: "modal" }} />
           <Stack.Screen name="modal/share" options={{ presentation: "modal" }} />
           <Stack.Screen name="modal/paywall" options={{ presentation: "modal" }} />
+          <Stack.Screen name="modal/wrapped" options={{ presentation: "fullScreenModal", animation: "fade" }} />
         </Stack>
       </SafeAreaProvider>
     </GestureHandlerRootView>

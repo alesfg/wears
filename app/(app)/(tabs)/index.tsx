@@ -6,6 +6,9 @@ import {
   ActivityIndicator,
   ScrollView,
   Modal,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -17,6 +20,7 @@ import { useAnalytics } from "@/hooks/useAnalytics";
 import { DashedLine } from "@/components/ui/DashedLine";
 import { ItemRow } from "@/components/features/ItemRow";
 import { Colors } from "@/constants/theme";
+import { supabase } from "@/lib/supabase";
 import type { ItemWithWears } from "@/lib/database.types";
 
 function formatPeriod() {
@@ -28,10 +32,10 @@ function formatPeriod() {
 function StatRow({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
   return (
     <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", paddingVertical: 4 }}>
-      <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1, textTransform: "uppercase" }}>
+      <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase" }}>
         {label}
       </Text>
-      <Text style={{ fontFamily: highlight ? "InstrumentSerif_400Regular" : "DMSans_400Regular", fontSize: highlight ? 22 : 12, color: highlight ? Colors.cpw : Colors.ink }}>
+      <Text style={{ fontFamily: highlight ? "InstrumentSerif_400Regular_Italic" : "DMSans_400Regular", fontSize: highlight ? 26 : 12, color: highlight ? Colors.cpw : Colors.ink }}>
         {value}
       </Text>
     </View>
@@ -43,10 +47,10 @@ function ListHeader({ username, totalCostBasis, totalWears, pieces, blendedCpw }
 }) {
   return (
     <View style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 4 }}>
-      <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 32, color: Colors.ink, textAlign: "center", letterSpacing: 1 }}>
+      <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 40, color: Colors.ink, textAlign: "center" }}>
         Wears
       </Text>
-      <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, textAlign: "center", letterSpacing: 2, textTransform: "uppercase", marginBottom: 16 }}>
+      <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, textAlign: "center", letterSpacing: 2.5, textTransform: "uppercase", marginBottom: 16 }}>
         QUARTERLY · {username} · {formatPeriod()}
       </Text>
       <DashedLine marginVertical={4} />
@@ -69,25 +73,21 @@ function ListHeader({ username, totalCostBasis, totalWears, pieces, blendedCpw }
   );
 }
 
-function EmptyState({ onAdd }: { onAdd: () => void }) {
+function EmptyState() {
   return (
     <View style={{ alignItems: "center", paddingTop: 48, paddingHorizontal: 32 }}>
-      {/* Receipt stub */}
       <View style={{ width: "100%", borderWidth: 1, borderColor: Colors.border, borderStyle: "dashed", padding: 24, alignItems: "center", gap: 12 }}>
         <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 2, textTransform: "uppercase" }}>
           PORTFOLIO SUMMARY
         </Text>
         <View style={{ width: "100%", height: 1, borderBottomWidth: 1, borderBottomColor: Colors.border, borderStyle: "dashed" }} />
-
         {["—", "—", "—"].map((_, i) => (
           <View key={i} style={{ flexDirection: "row", justifyContent: "space-between", width: "100%", opacity: 0.3 }}>
             <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.ink }}>item #{i + 1}</Text>
             <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.ink }}>$—.—/wear</Text>
           </View>
         ))}
-
         <View style={{ width: "100%", height: 1, borderBottomWidth: 1, borderBottomColor: Colors.border, borderStyle: "dashed" }} />
-
         <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 38, color: Colors.cpw, opacity: 0.25 }}>
           $0.00
         </Text>
@@ -95,40 +95,51 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
           BLENDED CPW
         </Text>
       </View>
-
       <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 20, color: Colors.ink, textAlign: "center", marginTop: 28, marginBottom: 6 }}>
         Your closet awaits.
       </Text>
-      <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, textAlign: "center", letterSpacing: 0.8, lineHeight: 18, marginBottom: 28 }}>
-        Add your first piece and start justifying{"\n"}every purchase you&apos;ve ever made.
+      <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, textAlign: "center", letterSpacing: 0.8, lineHeight: 18 }}>
+        Tap the button below to add your first piece.
       </Text>
-
-      <TouchableOpacity
-        onPress={onAdd}
-        style={{ backgroundColor: Colors.ink, paddingVertical: 16, paddingHorizontal: 40, alignItems: "center", width: "100%" }}
-        activeOpacity={0.85}
-      >
-        <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.cream, letterSpacing: 2, textTransform: "uppercase" }}>
-          + Add First Item
-        </Text>
-      </TouchableOpacity>
     </View>
   );
 }
 
 export default function ClosetLedger() {
   const router = useRouter();
-  const { user } = useUserStore();
+  const { user, setSession } = useUserStore();
   const { items, isLoading, fetchItems } = useItemStore();
   const { isAtFreeLimit } = usePaywall();
   const { track, Events } = useAnalytics();
   const [showWearPicker, setShowWearPicker] = useState(false);
+  const [showNamePrompt, setShowNamePrompt] = useState(false);
+  const [nameInput, setNameInput] = useState("");
+  const [savingName, setSavingName] = useState(false);
 
   useEffect(() => {
     if (user?.id) fetchItems(user.id);
   // fetchItems is stable from zustand; intentionally omitted
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
+
+  // Show name prompt once if display_name is not set
+  useEffect(() => {
+    if (user && !user.user_metadata?.display_name) {
+      const timer = setTimeout(() => setShowNamePrompt(true), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [user]);
+
+  const saveName = async () => {
+    const trimmed = nameInput.trim();
+    if (!trimmed) return;
+    setSavingName(true);
+    const { data } = await supabase.auth.updateUser({ data: { display_name: trimmed } });
+    // onAuthStateChange in useAuth will re-sync the session; update store directly too
+    if (data.user) setSession({ ...useUserStore.getState().session!, user: data.user });
+    setSavingName(false);
+    setShowNamePrompt(false);
+  };
 
   const sorted = useMemo(() => [...items].sort((a, b) => a.cpw - b.cpw), [items]);
 
@@ -139,7 +150,8 @@ export default function ClosetLedger() {
     return { totalCostBasis, totalWears, blendedCpw, pieces: items.length };
   }, [items]);
 
-  const username = user?.email?.split("@")[0]?.toUpperCase() ?? "YOU";
+  const rawName = user?.user_metadata?.display_name;
+  const username = rawName ? String(rawName).toUpperCase() : (user?.email?.split("@")[0]?.toUpperCase() ?? "YOU");
 
   const openAddItem = () => {
     if (isAtFreeLimit(items.length)) {
@@ -161,16 +173,6 @@ export default function ClosetLedger() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.cream }} edges={["top"]}>
-      {/* Add button */}
-      <TouchableOpacity
-        onPress={openAddItem}
-        style={{ position: "absolute", top: 56, right: 20, zIndex: 10 }}
-        activeOpacity={0.7}
-        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-      >
-        <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.ink, letterSpacing: 1.5 }}>+ ADD</Text>
-      </TouchableOpacity>
-
       <FlatList
         data={sorted}
         keyExtractor={(item) => item.id}
@@ -184,7 +186,7 @@ export default function ClosetLedger() {
             blendedCpw={stats.blendedCpw}
           />
         }
-        ListEmptyComponent={<EmptyState onAdd={openAddItem} />}
+        ListEmptyComponent={<EmptyState />}
         renderItem={({ item }: { item: ItemWithWears }) => (
           <View>
             <ItemRow item={item} onPress={() => {
@@ -196,21 +198,77 @@ export default function ClosetLedger() {
         )}
       />
 
-      {items.length > 0 && (
-        <View style={{ position: "absolute", bottom: 0, left: 0, right: 0, paddingBottom: 28, paddingHorizontal: 20, paddingTop: 12, backgroundColor: Colors.cream, borderTopWidth: 1, borderTopColor: Colors.border }}>
-          <TouchableOpacity
-            onPress={() => setShowWearPicker(true)}
-            style={{ backgroundColor: Colors.ink, paddingVertical: 16, alignItems: "center" }}
-            activeOpacity={0.85}
-          >
-            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.cream, letterSpacing: 2, textTransform: "uppercase" }}>
-              + Log Today&apos;s Wear
-            </Text>
-          </TouchableOpacity>
-        </View>
-      )}
+      {/* Always-visible bottom CTA */}
+      <View style={{ position: "absolute", bottom: 0, left: 0, right: 0, paddingBottom: 28, paddingHorizontal: 20, paddingTop: 12, backgroundColor: Colors.cream, borderTopWidth: 1, borderTopColor: Colors.border }}>
+        <TouchableOpacity
+          onPress={() => setShowWearPicker(true)}
+          style={{ backgroundColor: Colors.ink, paddingVertical: 16, alignItems: "center" }}
+          activeOpacity={0.85}
+        >
+          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.cream, letterSpacing: 2, textTransform: "uppercase" }}>
+            + Log Today&apos;s Wear
+          </Text>
+        </TouchableOpacity>
+      </View>
 
-      {/* Item picker */}
+      {/* Name prompt */}
+      <Modal
+        visible={showNamePrompt}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowNamePrompt(false)}
+      >
+        <KeyboardAvoidingView
+          style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.35)" }}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+        >
+          <View style={{ backgroundColor: Colors.cream, width: "82%", padding: 28, borderWidth: 1, borderColor: Colors.border }}>
+            <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 28, color: Colors.ink, textAlign: "center", marginBottom: 6 }}>
+              What&apos;s your name?
+            </Text>
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1.5, textAlign: "center", textTransform: "uppercase", marginBottom: 20 }}>
+              IT APPEARS IN YOUR LEDGER
+            </Text>
+            <DashedLine marginVertical={0} />
+            <TextInput
+              value={nameInput}
+              onChangeText={setNameInput}
+              placeholder="e.g. Margot"
+              placeholderTextColor={Colors.border}
+              autoFocus
+              autoCapitalize="words"
+              returnKeyType="done"
+              onSubmitEditing={saveName}
+              style={{
+                fontFamily: "InstrumentSerif_400Regular",
+                fontSize: 22,
+                color: Colors.ink,
+                textAlign: "center",
+                paddingVertical: 16,
+                letterSpacing: 0.5,
+              }}
+            />
+            <DashedLine marginVertical={0} />
+            <TouchableOpacity
+              onPress={saveName}
+              disabled={savingName || !nameInput.trim()}
+              style={{
+                backgroundColor: nameInput.trim() ? Colors.ink : Colors.border,
+                paddingVertical: 14,
+                alignItems: "center",
+                marginTop: 20,
+              }}
+              activeOpacity={0.85}
+            >
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.cream, letterSpacing: 2, textTransform: "uppercase" }}>
+                {savingName ? "SAVING..." : "CONTINUE"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Wear picker + add new piece */}
       <Modal
         visible={showWearPicker}
         transparent
@@ -222,17 +280,51 @@ export default function ClosetLedger() {
           activeOpacity={1}
           onPress={() => setShowWearPicker(false)}
         />
-        <View style={{ backgroundColor: Colors.cream, maxHeight: "60%", borderTopWidth: 1, borderTopColor: Colors.border }}>
+        <View style={{ backgroundColor: Colors.cream, maxHeight: "65%", borderTopWidth: 1, borderTopColor: Colors.border }}>
+          {/* Sheet header */}
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, paddingVertical: 14 }}>
             <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 2, textTransform: "uppercase" }}>
-              WHAT DID YOU WEAR TODAY?
+              WHAT ARE YOU WEARING TODAY?
             </Text>
             <TouchableOpacity onPress={() => setShowWearPicker(false)} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
               <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>✕</Text>
             </TouchableOpacity>
           </View>
           <DashedLine />
+
           <ScrollView bounces={false}>
+            {/* Add new piece row — always first */}
+            <TouchableOpacity
+              onPress={() => {
+                setShowWearPicker(false);
+                openAddItem();
+              }}
+              activeOpacity={0.7}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 20, paddingVertical: 16, gap: 14 }}>
+                <View style={{ width: 60, height: 60, borderWidth: 1, borderColor: Colors.border, borderStyle: "dashed", alignItems: "center", justifyContent: "center" }}>
+                  <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 20, color: Colors.muted }}>+</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 17, color: Colors.ink }}>
+                    New piece
+                  </Text>
+                  <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 0.8, marginTop: 3 }}>
+                    ADD TO YOUR CLOSET
+                  </Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+
+            {sorted.length > 0 && (
+              <>
+                <DashedLine />
+                <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 2, textTransform: "uppercase", paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4 }}>
+                  FROM YOUR CLOSET
+                </Text>
+              </>
+            )}
+
             {sorted.map((item) => (
               <TouchableOpacity
                 key={item.id}
@@ -247,8 +339,8 @@ export default function ClosetLedger() {
                   <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 16, color: Colors.ink, flex: 1 }} numberOfLines={1}>
                     {item.name}
                   </Text>
-                  <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.cpw, letterSpacing: 0.5 }}>
-                    ${item.cpw.toFixed(2)}/wear
+                  <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 15, color: Colors.cpw }}>
+                    ${item.cpw.toFixed(2)}<Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted }}> /wear</Text>
                   </Text>
                 </View>
                 <DashedLine />
