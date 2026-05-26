@@ -16,8 +16,10 @@ import { Colors } from "@/constants/theme";
 // ─── Receipt demo card ────────────────────────────────────────────────────────
 function DashSep() {
   return (
-    <View style={{ overflow: "hidden", marginVertical: 10 }}>
-      <View style={{ borderBottomWidth: 1, borderStyle: "dashed", borderColor: "#C8C0B4", marginBottom: -1 }} />
+    <View style={{ flexDirection: "row", marginVertical: 10, gap: 3 }}>
+      {Array.from({ length: 36 }).map((_, i) => (
+        <View key={i} style={{ flex: 1, height: 1, backgroundColor: "#C8C0B4" }} />
+      ))}
     </View>
   );
 }
@@ -26,15 +28,16 @@ function ReceiptDemo() {
   return (
     <View
       style={{
-        marginHorizontal: 20,
+        marginHorizontal: 48,
         backgroundColor: "#FFFFFF",
-        paddingHorizontal: 20,
-        paddingVertical: 14,
+        paddingHorizontal: 16,
+        paddingVertical: 10,
         shadowColor: "#000",
-        shadowOpacity: 0.08,
-        shadowRadius: 18,
-        shadowOffset: { width: 0, height: 5 },
+        shadowOpacity: 0.1,
+        shadowRadius: 14,
+        shadowOffset: { width: 0, height: 4 },
         elevation: 5,
+        transform: [{ rotate: "-3deg" }],
       }}
     >
       <Text
