@@ -20,6 +20,7 @@ import { DashedLine } from "@/components/ui/DashedLine";
 import { Colors } from "@/constants/theme";
 import { CATEGORIES } from "@/constants/config";
 import { analyzeGarment } from "@/lib/anthropic";
+import { removeBackground } from "@/lib/removebg";
 import type { ItemInsert } from "@/lib/database.types";
 import { t } from "@/lib/i18n";
 
@@ -44,9 +45,15 @@ export default function AddItem() {
     new Date().toISOString().split("T")[0]
   );
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const [cleanImageUri, setCleanImageUri] = useState<string | null>(null);
+  const [scanningAI, setScanningAI] = useState(false);
+  const [removingBg, setRemovingBg] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [scanning, setScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const processing = scanningAI || removingBg;
+
+  const overlayLabel = !scanningAI && removingBg ? "CLEANING BG..." : "ANALYZING...";
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -61,30 +68,58 @@ export default function AddItem() {
     if (!result.canceled && result.assets[0]) {
       const asset = result.assets[0];
       setImageUri(asset.uri);
+      setCleanImageUri(null);
 
       if (asset.base64) {
-        setScanning(true);
-        const analysis = await analyzeGarment(asset.base64);
-        if (analysis) {
-          if (analysis.name && !name) setName(analysis.name);
-          if (analysis.brand && !brand) setBrand(analysis.brand);
-          if (analysis.category && !category) setCategory(analysis.category);
-        }
-        setScanning(false);
+        setScanningAI(true);
+        setRemovingBg(true);
+
+        // Run Claude Vision + remove.bg in parallel
+        analyzeGarment(asset.base64).then((analysis) => {
+          if (analysis) {
+            if (analysis.name && !name) setName(analysis.name);
+            if (analysis.brand && !brand) setBrand(analysis.brand);
+            if (analysis.category && !category) setCategory(analysis.category);
+          }
+          setScanningAI(false);
+        });
+
+        removeBackground(asset.base64).then((clean) => {
+          if (clean) setCleanImageUri(clean);
+          setRemovingBg(false);
+        });
       }
     }
   };
 
   const uploadImage = async (uri: string, userId: string): Promise<string | null> => {
     try {
-      const rawExt = (uri.split(".").pop() ?? "jpg").split("?")[0].toLowerCase();
-      const ext = rawExt === "jpg" ? "jpeg" : rawExt;
+      let arraybuffer: ArrayBuffer;
+      let contentType: string;
+
+      if (uri.startsWith("data:")) {
+        // PNG data URI from background removal
+        const [header, base64] = uri.split(",");
+        contentType = header.split(":")[1].split(";")[0];
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        arraybuffer = bytes.buffer;
+      } else {
+        const rawExt = (uri.split(".").pop() ?? "jpg").split("?")[0].toLowerCase();
+        const ext = rawExt === "jpg" ? "jpeg" : rawExt;
+        contentType = `image/${ext}`;
+        arraybuffer = await fetch(uri).then((r) => r.arrayBuffer());
+      }
+
+      const ext = contentType.includes("png") ? "png" : "jpeg";
       const path = `${userId}/${Date.now()}.${ext}`;
-      const arraybuffer = await fetch(uri).then((r) => r.arrayBuffer());
+
       const { error } = await supabase.storage
         .from("item-images")
-        .upload(path, arraybuffer, { contentType: `image/${ext}` });
+        .upload(path, arraybuffer, { contentType });
       if (error) return null;
+
       const { data } = supabase.storage.from("item-images").getPublicUrl(path);
       return data.publicUrl;
     } catch {
@@ -108,8 +143,9 @@ export default function AddItem() {
     setError(null);
 
     let image_url: string | null = null;
-    if (imageUri) {
-      image_url = await uploadImage(imageUri, user.id);
+    const sourceToUpload = cleanImageUri ?? imageUri;
+    if (sourceToUpload) {
+      image_url = await uploadImage(sourceToUpload, user.id);
     }
 
     const itemData: ItemInsert = {
@@ -131,6 +167,8 @@ export default function AddItem() {
     }
   };
 
+  const displayImage = cleanImageUri ?? imageUri;
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.cream }} edges={["top", "bottom"]}>
       <KeyboardAvoidingView
@@ -138,15 +176,7 @@ export default function AddItem() {
         style={{ flex: 1 }}
       >
         {/* Header */}
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            paddingHorizontal: 20,
-            paddingVertical: 16,
-          }}
-        >
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 16 }}>
           <TouchableOpacity onPress={() => router.back()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
             <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>
               {t("cancel")}
@@ -159,14 +189,12 @@ export default function AddItem() {
         </View>
         <DashedLine />
 
-        <ScrollView
-          contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Photo + scan */}
+        <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
+
+          {/* Photo */}
           <TouchableOpacity
             onPress={pickImage}
-            disabled={scanning}
+            disabled={processing}
             style={{
               width: "100%",
               aspectRatio: 1,
@@ -181,63 +209,61 @@ export default function AddItem() {
             }}
             activeOpacity={0.7}
           >
-            {imageUri ? (
+            {displayImage ? (
               <>
                 <Image
-                  source={{ uri: imageUri }}
+                  source={{ uri: displayImage }}
                   style={{ width: "100%", height: "100%" }}
-                  resizeMode="cover"
+                  resizeMode={cleanImageUri ? "contain" : "cover"}
                 />
-                {scanning && (
-                  <View
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      backgroundColor: "rgba(26,26,26,0.55)",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 10,
-                    }}
-                  >
+
+                {/* Processing overlay */}
+                {processing && (
+                  <View style={{
+                    position: "absolute",
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: "rgba(26,26,26,0.55)",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 10,
+                  }}>
                     <ActivityIndicator color={Colors.cream} />
-                    <Text style={{
-                      fontFamily: "DMSans_400Regular",
-                      fontSize: 9,
-                      color: Colors.cream,
-                      letterSpacing: 2,
-                      textTransform: "uppercase",
-                    }}>
-                      ANALYZING...
+                    <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.cream, letterSpacing: 2 }}>
+                      {overlayLabel}
+                    </Text>
+                  </View>
+                )}
+
+                {/* BG removed badge */}
+                {!processing && cleanImageUri && (
+                  <View style={{
+                    position: "absolute",
+                    bottom: 10,
+                    right: 10,
+                    backgroundColor: Colors.badge,
+                    paddingHorizontal: 7,
+                    paddingVertical: 3,
+                  }}>
+                    <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 7, color: Colors.cream, letterSpacing: 1.5 }}>
+                      ✦ BG REMOVED
                     </Text>
                   </View>
                 )}
               </>
             ) : (
-              <View style={{ alignItems: "center", gap: 10 }}>
-                <Text style={{
-                  fontFamily: "DMSans_400Regular",
-                  fontSize: 10,
-                  color: Colors.muted,
-                  letterSpacing: 1.5,
-                  textTransform: "uppercase",
-                }}>
+              <View style={{ alignItems: "center", gap: 8 }}>
+                <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase" }}>
                   {t("tapToAddPhoto")}
                 </Text>
-                <Text style={{
-                  fontFamily: "DMSans_400Regular",
-                  fontSize: 8,
-                  color: Colors.border,
-                  letterSpacing: 1.5,
-                  textTransform: "uppercase",
-                }}>
-                  ✦ AI WILL FILL THE FORM
+                <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 8, color: Colors.border, letterSpacing: 1.5, textTransform: "uppercase" }}>
+                  ✦ AI SCANS + REMOVES BG
                 </Text>
               </View>
             )}
           </TouchableOpacity>
 
           {/* Name */}
-          <Field label={t("itemName")} scanning={scanning && !name}>
+          <Field label={t("itemName")} spinning={scanningAI && !name}>
             <TextInput
               value={name}
               onChangeText={setName}
@@ -245,12 +271,12 @@ export default function AddItem() {
               placeholderTextColor={Colors.muted}
               style={inputStyle}
               autoCapitalize="words"
-              editable={!scanning}
+              editable={!scanningAI}
             />
           </Field>
 
           {/* Brand */}
-          <Field label={t("brand")} scanning={scanning && !brand}>
+          <Field label={t("brand")} spinning={scanningAI && !brand}>
             <TextInput
               value={brand}
               onChangeText={setBrand}
@@ -258,11 +284,11 @@ export default function AddItem() {
               placeholderTextColor={Colors.muted}
               style={inputStyle}
               autoCapitalize="words"
-              editable={!scanning}
+              editable={!scanningAI}
             />
           </Field>
 
-          {/* Cost Basis — never pre-filled, always user input */}
+          {/* Cost Basis — always manual */}
           <Field label={t("costBasisField")}>
             <TextInput
               value={price}
@@ -288,52 +314,34 @@ export default function AddItem() {
 
           {/* Category */}
           <View style={{ marginBottom: 24 }}>
-            <Text style={[labelStyle, scanning && !category ? { color: Colors.cpw } : {}]}>
-              {t("category")}
-              {scanning && !category ? " · SCANNING..." : ""}
-            </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
-              <View style={{ flexDirection: "row", gap: 8 }}>
-                {CATEGORIES.map((cat) => (
-                  <TouchableOpacity
-                    key={cat}
-                    onPress={() => setCategory(cat === category ? "" : cat)}
-                    style={{
-                      paddingHorizontal: 12,
-                      paddingVertical: 6,
-                      borderWidth: 1,
-                      borderColor: category === cat ? Colors.ink : Colors.border,
-                      backgroundColor: category === cat ? Colors.ink : "transparent",
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <Text
+            <Field label={t("category")} spinning={scanningAI && !category}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
+                <View style={{ flexDirection: "row", gap: 8 }}>
+                  {CATEGORIES.map((cat) => (
+                    <TouchableOpacity
+                      key={cat}
+                      onPress={() => setCategory(cat === category ? "" : cat)}
                       style={{
-                        fontFamily: "DMSans_400Regular",
-                        fontSize: 10,
-                        color: category === cat ? Colors.cream : Colors.muted,
-                        letterSpacing: 1,
-                        textTransform: "uppercase",
+                        paddingHorizontal: 12,
+                        paddingVertical: 6,
+                        borderWidth: 1,
+                        borderColor: category === cat ? Colors.ink : Colors.border,
+                        backgroundColor: category === cat ? Colors.ink : "transparent",
                       }}
+                      activeOpacity={0.7}
                     >
-                      {cat}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
+                      <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: category === cat ? Colors.cream : Colors.muted, letterSpacing: 1, textTransform: "uppercase" }}>
+                        {cat}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
+            </Field>
           </View>
 
           {error && (
-            <Text
-              style={{
-                fontFamily: "DMSans_400Regular",
-                fontSize: 10,
-                color: Colors.cpw,
-                marginBottom: 12,
-                letterSpacing: 0.5,
-              }}
-            >
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.cpw, marginBottom: 12, letterSpacing: 0.5 }}>
               {error}
             </Text>
           )}
@@ -341,27 +349,14 @@ export default function AddItem() {
           {/* Save */}
           <TouchableOpacity
             onPress={handleSave}
-            disabled={loading || scanning}
-            style={{
-              backgroundColor: Colors.ink,
-              paddingVertical: 16,
-              alignItems: "center",
-              opacity: scanning ? 0.5 : 1,
-            }}
+            disabled={loading || processing}
+            style={{ backgroundColor: Colors.ink, paddingVertical: 16, alignItems: "center", opacity: processing ? 0.45 : 1 }}
             activeOpacity={0.85}
           >
             {loading ? (
               <ActivityIndicator color={Colors.cream} />
             ) : (
-              <Text
-                style={{
-                  fontFamily: "DMSans_400Regular",
-                  fontSize: 11,
-                  color: Colors.cream,
-                  letterSpacing: 2,
-                  textTransform: "uppercase",
-                }}
-              >
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.cream, letterSpacing: 2, textTransform: "uppercase" }}>
                 {t("logAsset")}
               </Text>
             )}
@@ -373,19 +368,15 @@ export default function AddItem() {
 }
 
 function Field({
-  label,
-  children,
-  scanning,
+  label, children, spinning,
 }: {
-  label: string;
-  children: React.ReactNode;
-  scanning?: boolean;
+  label: string; children: React.ReactNode; spinning?: boolean;
 }) {
   return (
     <View style={{ marginBottom: 20 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 6 }}>
         <Text style={labelStyle}>{label}</Text>
-        {scanning && (
+        {spinning && (
           <ActivityIndicator size="small" color={Colors.cpw} style={{ transform: [{ scale: 0.6 }] }} />
         )}
       </View>
