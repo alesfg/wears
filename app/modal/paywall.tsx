@@ -2,6 +2,7 @@ import {
   View,
   Text,
   TouchableOpacity,
+  ScrollView,
   ActivityIndicator,
   Alert,
 } from "react-native";
@@ -9,21 +10,167 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useState, useEffect } from "react";
 import { usePaywall } from "@/hooks/usePaywall";
-import { DashedLine } from "@/components/ui/DashedLine";
 import { Colors } from "@/constants/theme";
 import { posthog, Events } from "@/lib/posthog";
 
-const FEATURES = [
-  "UNLIMITED PIECES",
-  "SHARE EXPORTS (RECEIPT, POLAROID, WALLET)",
-  "ADVANCED CLOSET STATS",
-  "QUARTERLY EARNINGS REPORTS",
+const BG = "#1A1208";
+const CARD_BG = "rgba(255,255,255,0.05)";
+const MUTED = "rgba(255,255,255,0.35)";
+const CREAM = "#F5F2EB";
+
+const FEATURES: Array<{ label: string; note: string }> = [
+  { label: "Unlimited pieces",    note: "no 20-item cap" },
+  { label: "Wears Wrapped",       note: "year-in-review story" },
+  { label: "Shareholders feed",   note: "compare with friends" },
+  { label: "CPW projections",     note: '"should I buy?" calc' },
+  { label: "Outfit history",      note: "full calendar export" },
+  { label: "Receipt OCR",         note: "auto-import purchases" },
 ];
 
+function FeatureRow({ label, note }: { label: string; note: string }) {
+  return (
+    <View>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          paddingVertical: 13,
+        }}
+      >
+        <Text
+          style={{
+            fontFamily: "DMSans_400Regular",
+            fontSize: 13,
+            color: Colors.cpw,
+            width: 20,
+          }}
+        >
+          ✓
+        </Text>
+        <Text
+          style={{
+            fontFamily: "DMSans_400Regular",
+            fontSize: 14,
+            color: CREAM,
+            flex: 1,
+          }}
+        >
+          {label}
+        </Text>
+        <Text
+          style={{
+            fontFamily: "DMSans_400Regular",
+            fontSize: 10,
+            color: MUTED,
+            letterSpacing: 0.2,
+          }}
+        >
+          · {note}
+        </Text>
+      </View>
+      <View style={{ height: 1, backgroundColor: "rgba(255,255,255,0.07)" }} />
+    </View>
+  );
+}
+
+function PriceCard({
+  plan,
+  selected,
+  onPress,
+  showBadge,
+}: {
+  plan: "yearly" | "monthly";
+  selected: boolean;
+  onPress: () => void;
+  showBadge?: boolean;
+}) {
+  const isYearly = plan === "yearly";
+  return (
+    <View style={{ flex: 1, marginTop: 14 }}>
+      {/* BEST · VALUE badge sits on top border */}
+      {showBadge && (
+        <View
+          style={{
+            position: "absolute",
+            top: -1,
+            left: 12,
+            zIndex: 2,
+            backgroundColor: Colors.cpw,
+            paddingHorizontal: 8,
+            paddingVertical: 3,
+            borderRadius: 3,
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: "DMSans_400Regular",
+              fontSize: 7,
+              color: "#FFFFFF",
+              letterSpacing: 1.5,
+              textTransform: "uppercase",
+            }}
+          >
+            BEST · VALUE
+          </Text>
+        </View>
+      )}
+
+      <TouchableOpacity
+        onPress={onPress}
+        activeOpacity={0.85}
+        style={{
+          flex: 1,
+          backgroundColor: selected ? "rgba(196,80,58,0.08)" : CARD_BG,
+          borderWidth: 1.5,
+          borderColor: selected ? Colors.cpw : "rgba(255,255,255,0.12)",
+          borderRadius: 12,
+          padding: 14,
+          paddingTop: showBadge ? 20 : 14,
+        }}
+      >
+        <Text
+          style={{
+            fontFamily: "DMSans_400Regular",
+            fontSize: 9,
+            color: MUTED,
+            letterSpacing: 2,
+            textTransform: "uppercase",
+            marginBottom: 4,
+          }}
+        >
+          {isYearly ? "YEARLY" : "MONTHLY"}
+        </Text>
+        <Text
+          style={{
+            fontFamily: "InstrumentSerif_400Regular_Italic",
+            fontSize: 34,
+            color: CREAM,
+            lineHeight: 40,
+          }}
+        >
+          {isYearly ? "$29.99" : "$5.99"}
+        </Text>
+        <Text
+          style={{
+            fontFamily: "DMSans_400Regular",
+            fontSize: 10,
+            color: MUTED,
+            marginTop: 3,
+          }}
+        >
+          {isYearly ? "$2.50 / mo · save 58%" : "per month"}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
 export default function Paywall() {
   const router = useRouter();
   const { purchaseMonthly, purchaseAnnual, restore, isPro } = usePaywall();
-  const [loading, setLoading] = useState<"monthly" | "annual" | "restore" | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<"yearly" | "monthly">("yearly");
+  const [loading, setLoading] = useState<"purchase" | "restore" | null>(null);
 
   useEffect(() => {
     posthog.capture(Events.PAYWALL_SHOWN);
@@ -33,14 +180,14 @@ export default function Paywall() {
     if (isPro) router.back();
   }, [isPro, router]);
 
-  const handlePurchase = async (plan: "monthly" | "annual") => {
-    setLoading(plan);
+  const handleTrial = async () => {
+    setLoading("purchase");
     try {
-      const fn = plan === "monthly" ? purchaseMonthly : purchaseAnnual;
+      const fn = selectedPlan === "yearly" ? purchaseAnnual : purchaseMonthly;
       await fn();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Purchase cancelled.";
-      if (!msg.includes("cancel")) {
+      if (!msg.toLowerCase().includes("cancel")) {
         Alert.alert("Error", msg);
       }
     } finally {
@@ -56,191 +203,195 @@ export default function Paywall() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.cream }} edges={["top", "bottom"]}>
-      {/* Close */}
-      <TouchableOpacity
-        onPress={() => router.back()}
-        style={{ alignSelf: "flex-end", padding: 20 }}
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-      >
-        <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>
-          ✕
-        </Text>
-      </TouchableOpacity>
-
-      <View style={{ flex: 1, paddingHorizontal: 24 }}>
-        {/* Wordmark */}
-        <Text
+    <View style={{ flex: 1, backgroundColor: BG }}>
+      <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
+        {/* Header row */}
+        <View
           style={{
-            fontFamily: "InstrumentSerif_400Regular",
-            fontSize: 38,
-            color: Colors.ink,
-            textAlign: "center",
-            marginBottom: 2,
+            flexDirection: "row",
+            alignItems: "center",
+            paddingHorizontal: 16,
+            paddingTop: 4,
+            paddingBottom: 12,
           }}
         >
-          Wears Pro
-        </Text>
-        <Text
-          style={{
-            fontFamily: "DMSans_400Regular",
-            fontSize: 9,
-            color: Colors.muted,
-            textAlign: "center",
-            letterSpacing: 2,
-            textTransform: "uppercase",
-            marginBottom: 24,
-          }}
-        >
-          PORTFOLIO UPGRADE
-        </Text>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              backgroundColor: "rgba(255,255,255,0.1)",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: "DMSans_400Regular",
+                fontSize: 18,
+                color: CREAM,
+                lineHeight: 20,
+              }}
+            >
+              ×
+            </Text>
+          </TouchableOpacity>
 
-        <DashedLine marginVertical={4} />
+          <Text
+            style={{
+              flex: 1,
+              fontFamily: "DMSans_400Regular",
+              fontSize: 9,
+              color: MUTED,
+              letterSpacing: 2.5,
+              textTransform: "uppercase",
+              textAlign: "center",
+            }}
+          >
+            UPGRADE · WEARS PREMIUM
+          </Text>
 
-        {/* Features */}
-        <View style={{ paddingVertical: 20, gap: 14 }}>
-          {FEATURES.map((f) => (
-            <View key={f} style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.cpw }}>✓</Text>
-              <Text
-                style={{
-                  fontFamily: "DMSans_400Regular",
-                  fontSize: 10,
-                  color: Colors.ink,
-                  letterSpacing: 1,
-                  flex: 1,
-                }}
-              >
-                {f}
-              </Text>
-            </View>
-          ))}
+          {/* Balance the close button */}
+          <View style={{ width: 36 }} />
         </View>
 
-        <DashedLine marginVertical={4} />
+        <ScrollView
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 8 }}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Eyebrow */}
+          <Text
+            style={{
+              fontFamily: "DMSans_400Regular",
+              fontSize: 10,
+              color: Colors.cpw,
+              letterSpacing: 3,
+              textTransform: "uppercase",
+              marginBottom: 10,
+            }}
+          >
+            BECOME · A · SHAREHOLDER
+          </Text>
 
-        {/* Price options */}
-        <View style={{ paddingTop: 20, gap: 12 }}>
-          {/* Monthly */}
+          {/* Headline */}
+          <Text
+            style={{
+              fontFamily: "InstrumentSerif_400Regular_Italic",
+              fontSize: 52,
+              color: CREAM,
+              lineHeight: 58,
+            }}
+          >
+            Every wear is{"\n"}
+            <Text style={{ color: Colors.cpw }}>a dividend.</Text>
+          </Text>
+
+          {/* Body */}
+          <Text
+            style={{
+              fontFamily: "DMSans_400Regular",
+              fontSize: 15,
+              color: "rgba(245,242,235,0.75)",
+              lineHeight: 24,
+              marginTop: 14,
+              marginBottom: 24,
+            }}
+          >
+            Premium unlocks the full ledger — unlimited pieces, year-end reports, and the social layer.
+          </Text>
+
+          {/* Feature list */}
+          <View>
+            {FEATURES.map((f) => (
+              <FeatureRow key={f.label} label={f.label} note={f.note} />
+            ))}
+          </View>
+
+          {/* Price cards */}
+          <View style={{ flexDirection: "row", gap: 10, marginTop: 24 }}>
+            <PriceCard
+              plan="yearly"
+              selected={selectedPlan === "yearly"}
+              onPress={() => setSelectedPlan("yearly")}
+              showBadge
+            />
+            <PriceCard
+              plan="monthly"
+              selected={selectedPlan === "monthly"}
+              onPress={() => setSelectedPlan("monthly")}
+            />
+          </View>
+
+          {/* CTA */}
           <TouchableOpacity
-            onPress={() => handlePurchase("monthly")}
+            onPress={handleTrial}
             disabled={!!loading}
             style={{
-              backgroundColor: Colors.ink,
-              paddingVertical: 18,
+              marginTop: 16,
+              height: 58,
+              backgroundColor: Colors.cpw,
+              borderRadius: 100,
               alignItems: "center",
+              justifyContent: "center",
             }}
             activeOpacity={0.85}
           >
-            {loading === "monthly" ? (
-              <ActivityIndicator color={Colors.cream} />
+            {loading === "purchase" ? (
+              <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <View style={{ alignItems: "center" }}>
-                <Text
-                  style={{
-                    fontFamily: "DMSans_400Regular",
-                    fontSize: 11,
-                    color: Colors.cream,
-                    letterSpacing: 2,
-                    textTransform: "uppercase",
-                  }}
-                >
-                  START 7-DAY FREE TRIAL
-                </Text>
-                <Text
-                  style={{
-                    fontFamily: "DMSans_400Regular",
-                    fontSize: 9,
-                    color: "rgba(245,242,235,0.6)",
-                    letterSpacing: 1,
-                    marginTop: 3,
-                  }}
-                >
-                  then $4.99 / month
-                </Text>
-              </View>
+              <Text
+                style={{
+                  fontFamily: "DMSans_400Regular",
+                  fontSize: 17,
+                  color: "#FFFFFF",
+                  letterSpacing: 0.2,
+                }}
+              >
+                Start 7-day free trial →
+              </Text>
             )}
           </TouchableOpacity>
 
-          {/* Annual */}
-          <TouchableOpacity
-            onPress={() => handlePurchase("annual")}
-            disabled={!!loading}
+          {/* Cancel note */}
+          <Text
             style={{
-              borderWidth: 1,
-              borderColor: Colors.ink,
-              paddingVertical: 18,
-              alignItems: "center",
+              fontFamily: "DMSans_400Regular",
+              fontSize: 9,
+              color: MUTED,
+              letterSpacing: 2,
+              textTransform: "uppercase",
+              textAlign: "center",
+              marginTop: 12,
             }}
-            activeOpacity={0.8}
           >
-            {loading === "annual" ? (
-              <ActivityIndicator color={Colors.ink} />
+            CANCEL ANYTIME · NO REMINDER NEEDED
+          </Text>
+
+          {/* Restore */}
+          <TouchableOpacity
+            onPress={handleRestore}
+            disabled={!!loading}
+            style={{ alignItems: "center", paddingTop: 12, paddingBottom: 4 }}
+          >
+            {loading === "restore" ? (
+              <ActivityIndicator color={MUTED} size="small" />
             ) : (
-              <View style={{ alignItems: "center" }}>
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                  <Text
-                    style={{
-                      fontFamily: "DMSans_400Regular",
-                      fontSize: 11,
-                      color: Colors.ink,
-                      letterSpacing: 2,
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    $29.99 / YEAR
-                  </Text>
-                  <View style={{ backgroundColor: Colors.cpw, paddingHorizontal: 6, paddingVertical: 2 }}>
-                    <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 8, color: Colors.cream, letterSpacing: 1 }}>
-                      SAVE 50%
-                    </Text>
-                  </View>
-                </View>
-                <Text
-                  style={{
-                    fontFamily: "DMSans_400Regular",
-                    fontSize: 9,
-                    color: Colors.muted,
-                    letterSpacing: 1,
-                    marginTop: 3,
-                  }}
-                >
-                  best value
-                </Text>
-              </View>
+              <Text
+                style={{
+                  fontFamily: "DMSans_400Regular",
+                  fontSize: 9,
+                  color: "rgba(255,255,255,0.2)",
+                  letterSpacing: 1,
+                }}
+              >
+                Restore purchases
+              </Text>
             )}
           </TouchableOpacity>
-        </View>
-
-        {/* Restore */}
-        <TouchableOpacity
-          onPress={handleRestore}
-          disabled={!!loading}
-          style={{ alignItems: "center", paddingTop: 16 }}
-        >
-          {loading === "restore" ? (
-            <ActivityIndicator color={Colors.muted} size="small" />
-          ) : (
-            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1 }}>
-              Restore Purchases
-            </Text>
-          )}
-        </TouchableOpacity>
-
-        <Text
-          style={{
-            fontFamily: "DMSans_400Regular",
-            fontSize: 8,
-            color: Colors.muted,
-            textAlign: "center",
-            marginTop: 12,
-            lineHeight: 14,
-          }}
-        >
-          Cancel anytime. Subscription auto-renews.{"\n"}
-          Terms · Privacy
-        </Text>
-      </View>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   );
 }

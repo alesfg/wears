@@ -505,25 +505,25 @@ export default function Wrapped() {
 
   return (
     <View style={{ flex: 1 }}>
-      {/* Background */}
+      {/* Backgrounds */}
       {slide === 0 && (
         <LinearGradient
           colors={["#1A0D06", "#3D1A0A", "#1A0D06"]}
           start={{ x: 0.2, y: 0.3 }}
           end={{ x: 1, y: 0.8 }}
-          style={{ ...styleAbsoluteFill }}
+          style={styleAbsoluteFill}
         />
       )}
-      {slide === 1 && <View style={{ ...styleAbsoluteFill, backgroundColor: Colors.cream }} />}
-      {slide === 2 && <View style={{ ...styleAbsoluteFill, backgroundColor: Colors.cpw }} />}
-      {slide === 3 && <View style={{ ...styleAbsoluteFill, backgroundColor: "#160E08" }} />}
-      {slide === 4 && <View style={{ ...styleAbsoluteFill, backgroundColor: Colors.cream }} />}
+      {slide === 1 && <View style={[styleAbsoluteFill, { backgroundColor: Colors.cream }]} />}
+      {slide === 2 && <View style={[styleAbsoluteFill, { backgroundColor: Colors.cpw }]} />}
+      {slide === 3 && <View style={[styleAbsoluteFill, { backgroundColor: "#160E08" }]} />}
+      {slide === 4 && <View style={[styleAbsoluteFill, { backgroundColor: Colors.cream }]} />}
 
       <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
         {/* Progress bar */}
         <StoryBar totalSlides={TOTAL_SLIDES} currentSlide={slide} progress={progress} light={isLight} />
 
-        {/* Header */}
+        {/* Header — rendered before tap zones so it's never blocked */}
         <StoryHeader
           initial={displayName[0]?.toUpperCase() ?? "W"}
           name={displayName}
@@ -532,51 +532,46 @@ export default function Wrapped() {
           light={isLight}
         />
 
-        {/* Slide content */}
+        {/* Slide area: tap zones sit behind content here only, not over the header */}
         <View style={{ flex: 1 }}>
-          {slide === 0 && (
-            <Slide0
-              name={displayName}
-              year={year}
-              pieces={stats.pieces}
-              totalWears={stats.totalWears}
-              blendedCpw={stats.blendedCpw}
-            />
-          )}
-          {slide === 1 && <Slide1 item={stats.mostProfitable} />}
-          {slide === 2 && (
-            <Slide2
-              totalWears={stats.totalWears}
-              busiestMonth={stats.busiestMonth}
-              quietestMonth={stats.quietestMonth}
-            />
-          )}
-          {slide === 3 && <Slide3 items={stats.underperformers} />}
-          {slide === 4 && (
-            <Slide4
-              name={displayName}
-              year={year}
-              blendedCpw={stats.blendedCpw}
-              onShare={onShare}
-              onReplay={onReplay}
-            />
-          )}
+          {/* Tap zones — absolute fill within the slide area */}
+          <View style={[styleAbsoluteFill, { flexDirection: "row" }]}>
+            <TouchableOpacity style={{ width: "35%", height: "100%" }} activeOpacity={1} onPress={retreat} />
+            <TouchableOpacity style={{ flex: 1, height: "100%" }} activeOpacity={1} onPress={advance} />
+          </View>
+
+          {/* Slide content — on top, pointerEvents box-none so non-interactive areas pass through */}
+          <View style={{ flex: 1 }} pointerEvents="box-none">
+            {slide === 0 && (
+              <Slide0
+                name={displayName}
+                year={year}
+                pieces={stats.pieces}
+                totalWears={stats.totalWears}
+                blendedCpw={stats.blendedCpw}
+              />
+            )}
+            {slide === 1 && <Slide1 item={stats.mostProfitable} />}
+            {slide === 2 && (
+              <Slide2
+                totalWears={stats.totalWears}
+                busiestMonth={stats.busiestMonth}
+                quietestMonth={stats.quietestMonth}
+              />
+            )}
+            {slide === 3 && <Slide3 items={stats.underperformers} />}
+            {slide === 4 && (
+              <Slide4
+                name={displayName}
+                year={year}
+                blendedCpw={stats.blendedCpw}
+                onShare={onShare}
+                onReplay={onReplay}
+              />
+            )}
+          </View>
         </View>
       </SafeAreaView>
-
-      {/* Navigation tap zones (sit above slide content, below buttons) */}
-      <View style={{ ...styleAbsoluteFill, flexDirection: "row", pointerEvents: "box-none" }}>
-        <TouchableOpacity
-          style={{ width: "35%", height: "100%" }}
-          activeOpacity={1}
-          onPress={retreat}
-        />
-        <TouchableOpacity
-          style={{ flex: 1, height: "100%" }}
-          activeOpacity={1}
-          onPress={advance}
-        />
-      </View>
     </View>
   );
 }
