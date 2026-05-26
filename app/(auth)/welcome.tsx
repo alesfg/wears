@@ -12,6 +12,7 @@ import * as AppleAuthentication from "expo-apple-authentication";
 import { Feather } from "@expo/vector-icons";
 import { useAuth } from "@/hooks/useAuth";
 import { Colors } from "@/constants/theme";
+import { t } from "@/lib/i18n";
 
 // ─── Receipt demo card ────────────────────────────────────────────────────────
 function DashSep() {
@@ -89,7 +90,7 @@ function ReceiptDemo() {
           marginTop: 2,
         }}
       >
-        ※ THE MATH IS ON YOUR SIDE ※
+        ※ {t("receiptFooter")} ※
       </Text>
     </View>
   );
@@ -155,7 +156,7 @@ export default function Welcome() {
             marginTop: 2,
           }}
         >
-          A ledger for everything{"\n"}hanging in your closet.
+          {t("welcomeTagline")}
         </Text>
       </View>
 
@@ -207,7 +208,7 @@ export default function Welcome() {
             activeOpacity={0.85}
           >
             <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 17, color: "#FFFFFF" }}>
-              Continue with Apple
+              {t("continueApple")}
             </Text>
           </TouchableOpacity>
         )}
@@ -230,7 +231,7 @@ export default function Welcome() {
         >
           <Feather name="mail" size={18} color={Colors.ink} />
           <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 17, color: Colors.ink }}>
-            Continue with email
+            {t("continueEmail")}
           </Text>
         </TouchableOpacity>
 
@@ -245,7 +246,7 @@ export default function Welcome() {
               letterSpacing: 2,
             }}
           >
-            OR
+            {t("orDivider")}
           </Text>
           <View style={{ flex: 1, height: 1, backgroundColor: "#DDD6CE" }} />
         </View>
@@ -266,7 +267,7 @@ export default function Welcome() {
                 textDecorationLine: "underline",
               }}
             >
-              {guestLoading ? "Loading..." : "Browse as a guest"}
+              {guestLoading ? "..." : t("browseAsGuest")}
             </Text>
             <Text
               style={{
@@ -276,7 +277,7 @@ export default function Welcome() {
                 letterSpacing: 1.5,
               }}
             >
-              · NO ACCT
+              · {t("noAcct")}
             </Text>
           </View>
         </TouchableOpacity>
@@ -292,7 +293,7 @@ export default function Welcome() {
               textAlign: "center",
             }}
           >
-            BY CONTINUING · YOU AGREE TO
+            {t("legalLine")}
           </Text>
           <View style={{ flexDirection: "row", gap: 6, marginTop: 2 }}>
             <Text
@@ -304,7 +305,7 @@ export default function Welcome() {
                 textDecorationLine: "underline",
               }}
             >
-              TERMS
+              {t("terms")}
             </Text>
             <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1 }}>
               ·
@@ -318,7 +319,7 @@ export default function Welcome() {
                 textDecorationLine: "underline",
               }}
             >
-              PRIVACY
+              {t("privacy")}
             </Text>
           </View>
         </View>

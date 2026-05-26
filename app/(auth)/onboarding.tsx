@@ -21,6 +21,7 @@ import { supabase } from "@/lib/supabase";
 import { Colors } from "@/constants/theme";
 import { posthog, Events } from "@/lib/posthog";
 import type { ItemInsert } from "@/lib/database.types";
+import { t } from "@/lib/i18n";
 
 const ONBOARDING_KEY = "@wears/onboarding_complete";
 
@@ -100,9 +101,9 @@ export default function Onboarding() {
   };
 
   const runTheNumbers = async () => {
-    if (!name.trim()) { setError("Give this piece a name."); return; }
+    if (!name.trim()) { setError(t("giveAName")); return; }
     const parsedPrice = parseFloat(price);
-    if (!price || isNaN(parsedPrice) || parsedPrice <= 0) { setError("Enter the cost basis."); return; }
+    if (!price || isNaN(parsedPrice) || parsedPrice <= 0) { setError(t("enterCostBasis")); return; }
     if (!user?.id) return;
 
     setLoading(true);
@@ -124,7 +125,7 @@ export default function Onboarding() {
 
     const saved = await addItem(itemData, user.id);
     setLoading(false);
-    if (!saved) { setError("Couldn't save. Try again."); return; }
+    if (!saved) { setError(t("couldntSave")); return; }
 
     setSavedName(name.trim());
     setSavedPrice(parsedPrice);
@@ -144,7 +145,7 @@ export default function Onboarding() {
         <ProgressBar filled={2} />
 
         <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 2, textTransform: "uppercase", paddingHorizontal: 24, paddingBottom: 20 }}>
-          STEP 2 / 3 · THE HOOK
+          {t("step2Label")}
         </Text>
 
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
@@ -155,11 +156,11 @@ export default function Onboarding() {
           >
             {/* Headline */}
             <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 38, color: Colors.ink, lineHeight: 46, marginBottom: 16 }}>
-              {"What's the piece\nyou feel\n"}
-              <Text style={{ color: Colors.cpw }}>guilty about?</Text>
+              {t("guiltPieceHeadline")}
+              <Text style={{ color: Colors.cpw }}>{t("guiltPieceAccent")}</Text>
             </Text>
             <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 14, color: Colors.muted, lineHeight: 22, marginBottom: 28 }}>
-              We&apos;ll show you exactly how many wears she needs to pay herself off. Pick the most expensive thing in your closet.
+              {t("onboardingDesc")}
             </Text>
 
             {/* Photo picker */}
@@ -178,7 +179,7 @@ export default function Onboarding() {
                       TAP TO ADD PHOTO
                     </Text>
                     <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: "rgba(255,255,255,0.35)", letterSpacing: 1.5, textTransform: "uppercase" }}>
-                      OR SCAN A RECEIPT
+                      {t("orScanReceipt")}
                     </Text>
                   </View>
                 </View>
@@ -187,7 +188,7 @@ export default function Onboarding() {
 
             {/* Name */}
             <View style={{ marginBottom: 24 }}>
-              <Text style={labelStyle}>NAME</Text>
+              <Text style={labelStyle}>{t("nameCostBasis")}</Text>
               <TextInput
                 value={name}
                 onChangeText={setName}
@@ -200,7 +201,7 @@ export default function Onboarding() {
 
             {/* Brand */}
             <View style={{ marginBottom: 24 }}>
-              <Text style={labelStyle}>BRAND</Text>
+              <Text style={labelStyle}>{t("brandLabel")}</Text>
               <TextInput
                 value={brand}
                 onChangeText={setBrand}
@@ -213,7 +214,7 @@ export default function Onboarding() {
 
             {/* Price */}
             <View style={{ marginBottom: 8 }}>
-              <Text style={labelStyle}>COST BASIS ($)</Text>
+              <Text style={labelStyle}>{t("costBasisLabel")}</Text>
               <TextInput
                 value={price}
                 onChangeText={setPrice}
@@ -243,7 +244,7 @@ export default function Onboarding() {
                 <ActivityIndicator color={Colors.cream} />
               ) : (
                 <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 18, color: Colors.cream }}>
-                  Run the numbers →
+                  {t("runNumbers")}
                 </Text>
               )}
             </TouchableOpacity>
@@ -261,7 +262,7 @@ export default function Onboarding() {
       <ProgressBar filled={3} />
 
       <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 2, textTransform: "uppercase", paddingHorizontal: 24, paddingBottom: 20 }}>
-        STEP 3 / 3 · THE MATH
+        {t("step3Label")}
       </Text>
 
       <ScrollView
@@ -270,7 +271,7 @@ export default function Onboarding() {
       >
         {/* Eyebrow + headline */}
         <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>
-          OK, HERE&apos;S THE DEAL ↓
+          {t("heresDeal")}
         </Text>
         <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 40, color: Colors.ink, lineHeight: 48, marginBottom: 32 }}>
           The {displayName}{"\n"}cost ${savedPrice % 1 === 0 ? savedPrice : savedPrice.toFixed(2)}.
@@ -279,7 +280,7 @@ export default function Onboarding() {
         {/* Table header */}
         <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 12 }}>
           <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase" }}>
-            EVERY WEAR DROPS THE COST
+            {t("everyWearDrops")}
           </Text>
           <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase" }}>
             CPW
@@ -316,9 +317,11 @@ export default function Onboarding() {
 
         {/* Pull quote */}
         <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 22, color: Colors.ink, lineHeight: 32, marginTop: 32 }}>
-          Wear it{" "}
-          <Text style={{ color: Colors.cpw }}>30 times</Text>
-          {" "}and it costs less per wear than your weekly oat milk.
+          {t("oatMilkQuote", { n: "30" }).split("30").map((part, i, arr) =>
+            i < arr.length - 1
+              ? [part, <Text key={i} style={{ color: Colors.cpw }}>30</Text>]
+              : part
+          )}
         </Text>
       </ScrollView>
 
@@ -330,7 +333,7 @@ export default function Onboarding() {
           activeOpacity={0.85}
         >
           <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 18, color: Colors.cream }}>
-            Open my closet →
+            {t("openCloset")}
           </Text>
         </TouchableOpacity>
       </View>

@@ -20,6 +20,7 @@ import { DashedLine } from "@/components/ui/DashedLine";
 import { Colors } from "@/constants/theme";
 import { CATEGORIES } from "@/constants/config";
 import type { ItemInsert } from "@/lib/database.types";
+import { t } from "@/lib/i18n";
 
 type Category = (typeof CATEGORIES)[number];
 
@@ -80,12 +81,12 @@ export default function AddItem() {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      setError("Name is required.");
+      setError(t("nameRequired"));
       return;
     }
     const parsedPrice = parseFloat(price);
     if (!price || isNaN(parsedPrice) || parsedPrice <= 0) {
-      setError("Enter a valid cost basis.");
+      setError(t("validCostBasis"));
       return;
     }
     if (!user?.id) return;
@@ -113,7 +114,7 @@ export default function AddItem() {
     if (result) {
       router.back();
     } else {
-      setError("Failed to save. Try again.");
+      setError(t("failedToSave"));
     }
   };
 
@@ -135,11 +136,11 @@ export default function AddItem() {
         >
           <TouchableOpacity onPress={() => router.back()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
             <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>
-              CANCEL
+              {t("cancel")}
             </Text>
           </TouchableOpacity>
           <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.ink, letterSpacing: 2, textTransform: "uppercase" }}>
-            New Asset
+            {t("newAsset")}
           </Text>
           <View style={{ width: 44 }} />
         </View>
@@ -182,13 +183,13 @@ export default function AddItem() {
                   textTransform: "uppercase",
                 }}
               >
-                TAP TO ADD PHOTO
+                {t("tapToAddPhoto")}
               </Text>
             )}
           </TouchableOpacity>
 
           {/* Name */}
-          <Field label="Item Name">
+          <Field label={t("itemName")}>
             <TextInput
               value={name}
               onChangeText={setName}
@@ -200,7 +201,7 @@ export default function AddItem() {
           </Field>
 
           {/* Brand */}
-          <Field label="Brand">
+          <Field label={t("brand")}>
             <TextInput
               value={brand}
               onChangeText={setBrand}
@@ -212,7 +213,7 @@ export default function AddItem() {
           </Field>
 
           {/* Cost Basis */}
-          <Field label="Cost Basis ($)">
+          <Field label={t("costBasisField")}>
             <TextInput
               value={price}
               onChangeText={setPrice}
@@ -224,7 +225,7 @@ export default function AddItem() {
           </Field>
 
           {/* Date Acquired */}
-          <Field label="Acquired (YYYY-MM-DD)">
+          <Field label={t("acquiredDate")}>
             <TextInput
               value={purchasedAt}
               onChangeText={setPurchasedAt}
@@ -237,7 +238,7 @@ export default function AddItem() {
 
           {/* Category */}
           <View style={{ marginBottom: 24 }}>
-            <Text style={labelStyle}>Category</Text>
+            <Text style={labelStyle}>{t("category")}</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
               <View style={{ flexDirection: "row", gap: 8 }}>
                 {CATEGORIES.map((cat) => (
@@ -307,7 +308,7 @@ export default function AddItem() {
                   textTransform: "uppercase",
                 }}
               >
-                Log Asset
+                {t("logAsset")}
               </Text>
             )}
           </TouchableOpacity>

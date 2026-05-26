@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Colors } from "@/constants/theme";
 import { DashedLine } from "@/components/ui/DashedLine";
 import { posthog, Events } from "@/lib/posthog";
+import { t } from "@/lib/i18n";
 
 export default function Login() {
   const router = useRouter();
@@ -23,7 +24,7 @@ export default function Login() {
 
   const handleAuth = async () => {
     if (!email.trim() || !password.trim()) {
-      setError("Email and password required.");
+      setError(t("emailPasswordRequired"));
       return;
     }
     setLoading(true);
@@ -57,7 +58,7 @@ export default function Login() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.cream, paddingHorizontal: 28 }} edges={["top", "bottom"]}>
       <TouchableOpacity onPress={() => router.replace("/(auth)/welcome")} style={{ paddingTop: 16, paddingBottom: 8 }}>
-        <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>{"< "}BACK</Text>
+        <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>{"< "}{t("back")}</Text>
       </TouchableOpacity>
 
       <View style={{ flex: 1, justifyContent: "center" }}>
@@ -65,7 +66,7 @@ export default function Login() {
           Wears
         </Text>
         <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 2, textTransform: "uppercase", marginBottom: 32 }}>
-          {isSignUp ? "open account" : "sign in"}
+          {isSignUp ? t("openAccount") : t("signIn")}
         </Text>
 
         <DashedLine marginVertical={0} />
@@ -131,14 +132,14 @@ export default function Login() {
             <ActivityIndicator color={Colors.cream} />
           ) : (
             <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.cream, letterSpacing: 2, textTransform: "uppercase" }}>
-              {isSignUp ? "create account" : "sign in"}
+              {isSignUp ? t("createAccount") : t("signIn")}
             </Text>
           )}
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => setIsSignUp(!isSignUp)} style={{ alignItems: "center", paddingTop: 16 }}>
           <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1 }}>
-            {isSignUp ? "already have an account? sign in" : "no account? create one"}
+            {isSignUp ? t("alreadyHaveAccount") : t("noAccount")}
           </Text>
         </TouchableOpacity>
       </View>

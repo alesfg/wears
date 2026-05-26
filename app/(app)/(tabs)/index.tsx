@@ -22,6 +22,7 @@ import { ItemRow } from "@/components/features/ItemRow";
 import { Colors } from "@/constants/theme";
 import { supabase } from "@/lib/supabase";
 import type { ItemWithWears } from "@/lib/database.types";
+import { t } from "@/lib/i18n";
 
 function formatPeriod() {
   const now = new Date();
@@ -55,17 +56,17 @@ function ListHeader({ username, totalCostBasis, totalWears, pieces, blendedCpw }
       </Text>
       <DashedLine marginVertical={4} />
       <View style={{ paddingVertical: 8 }}>
-        <StatRow label="Cost Basis" value={`$${totalCostBasis.toFixed(2)}`} />
-        <StatRow label="Wears Logged" value={String(totalWears)} />
-        <StatRow label="Pieces" value={String(pieces)} />
+        <StatRow label={t("costBasis")} value={`$${totalCostBasis.toFixed(2)}`} />
+        <StatRow label={t("wearsLogged")} value={String(totalWears)} />
+        <StatRow label={t("pieces")} value={String(pieces)} />
       </View>
       <DashedLine marginVertical={4} />
       <View style={{ paddingVertical: 10 }}>
-        <StatRow label="Blended CPW" value={blendedCpw > 0 ? `$${blendedCpw.toFixed(2)}` : "—"} highlight />
+        <StatRow label={t("blendedCpw")} value={blendedCpw > 0 ? `$${blendedCpw.toFixed(2)}` : "—"} highlight />
       </View>
       <DashedLine marginVertical={4} />
       <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 8 }}>
-        <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase" }}>ITEM</Text>
+        <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase" }}>{t("itemCol")}</Text>
         <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase" }}>CPW</Text>
       </View>
       <DashedLine />
@@ -96,10 +97,10 @@ function EmptyState() {
         </Text>
       </View>
       <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 20, color: Colors.ink, textAlign: "center", marginTop: 28, marginBottom: 6 }}>
-        Your closet awaits.
+        {t("closetAwaits")}
       </Text>
       <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, textAlign: "center", letterSpacing: 0.8, lineHeight: 18 }}>
-        Tap the button below to add your first piece.
+        {t("addFirstPiece")}
       </Text>
     </View>
   );
@@ -206,7 +207,7 @@ export default function ClosetLedger() {
           activeOpacity={0.85}
         >
           <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.cream, letterSpacing: 2, textTransform: "uppercase" }}>
-            + Log Today&apos;s Wear
+            {t("logWearCta")}
           </Text>
         </TouchableOpacity>
       </View>
@@ -224,16 +225,16 @@ export default function ClosetLedger() {
         >
           <View style={{ backgroundColor: Colors.cream, width: "82%", padding: 28, borderWidth: 1, borderColor: Colors.border }}>
             <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 28, color: Colors.ink, textAlign: "center", marginBottom: 6 }}>
-              What&apos;s your name?
+              {t("whatsYourName")}
             </Text>
             <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1.5, textAlign: "center", textTransform: "uppercase", marginBottom: 20 }}>
-              IT APPEARS IN YOUR LEDGER
+              {t("appearsInLedger")}
             </Text>
             <DashedLine marginVertical={0} />
             <TextInput
               value={nameInput}
               onChangeText={setNameInput}
-              placeholder="e.g. Margot"
+              placeholder={t("namePlaceholder")}
               placeholderTextColor={Colors.border}
               autoFocus
               autoCapitalize="words"
@@ -261,7 +262,7 @@ export default function ClosetLedger() {
               activeOpacity={0.85}
             >
               <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.cream, letterSpacing: 2, textTransform: "uppercase" }}>
-                {savingName ? "SAVING..." : "CONTINUE"}
+                {savingName ? t("saving") : t("continueCta")}
               </Text>
             </TouchableOpacity>
           </View>
@@ -284,7 +285,7 @@ export default function ClosetLedger() {
           {/* Sheet header */}
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, paddingVertical: 14 }}>
             <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 2, textTransform: "uppercase" }}>
-              WHAT ARE YOU WEARING TODAY?
+              {t("wearingToday")}
             </Text>
             <TouchableOpacity onPress={() => setShowWearPicker(false)} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
               <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>✕</Text>
@@ -307,10 +308,10 @@ export default function ClosetLedger() {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 17, color: Colors.ink }}>
-                    New piece
+                    {t("newPiece")}
                   </Text>
                   <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 0.8, marginTop: 3 }}>
-                    ADD TO YOUR CLOSET
+                    {t("addToCloset")}
                   </Text>
                 </View>
               </View>
@@ -320,7 +321,7 @@ export default function ClosetLedger() {
               <>
                 <DashedLine />
                 <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 2, textTransform: "uppercase", paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4 }}>
-                  FROM YOUR CLOSET
+                  {t("fromCloset")}
                 </Text>
               </>
             )}

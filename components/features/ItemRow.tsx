@@ -1,6 +1,7 @@
 import { View, Text, TouchableOpacity, Image } from "react-native";
 import { Colors } from "@/constants/theme";
 import type { ItemWithWears } from "@/lib/database.types";
+import { t } from "@/lib/i18n";
 
 interface Props {
   item: ItemWithWears;
@@ -127,7 +128,7 @@ export function ItemRow({ item, onPress }: Props) {
             letterSpacing: 0.5,
           }}
         >
-          /wear
+          {t("perWear")}
         </Text>
       </View>
     </TouchableOpacity>

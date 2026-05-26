@@ -15,6 +15,7 @@ import { usePaywall } from "@/hooks/usePaywall";
 import { useAuth } from "@/hooks/useAuth";
 import { Colors } from "@/constants/theme";
 import { FREE_TIER_ITEM_LIMIT } from "@/constants/config";
+import { t } from "@/lib/i18n";
 
 const TOGGLE_GREEN = "#4CAF50";
 const SECTION_BG = "#FFFFFF";
@@ -138,7 +139,7 @@ function UpgradeBanner({ onPress }: { onPress: () => void }) {
             marginBottom: 8,
           }}
         >
-          ★ BECOME · A · SHAREHOLDER
+          {t("becomeShareholder")}
         </Text>
         <Text
           style={{
@@ -149,7 +150,7 @@ function UpgradeBanner({ onPress }: { onPress: () => void }) {
             marginBottom: 14,
           }}
         >
-          Unlimited pieces.{"\n"}Wrapped. Wishlist.
+          {t("upgradeTagline")}
         </Text>
 
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
@@ -160,7 +161,7 @@ function UpgradeBanner({ onPress }: { onPress: () => void }) {
               color: "rgba(245,242,235,0.45)",
             }}
           >
-            $2.50 / mo · 7-day free
+            {t("upgradePrice")}
           </Text>
           <TouchableOpacity
             onPress={onPress}
@@ -173,7 +174,7 @@ function UpgradeBanner({ onPress }: { onPress: () => void }) {
             activeOpacity={0.85}
           >
             <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 14, color: "#FFFFFF" }}>
-              Upgrade →
+              {t("upgradeCta")}
             </Text>
           </TouchableOpacity>
         </View>
@@ -218,7 +219,7 @@ function ProCard() {
             color: Colors.ink,
           }}
         >
-          Active subscription
+          {t("activeSubscription")}
         </Text>
       </View>
       <View
@@ -272,7 +273,7 @@ function UsageBar({ count, limit }: { count: number; limit: number }) {
             textTransform: "uppercase",
           }}
         >
-          {spotsLeft} SPOTS LEFT
+          {t("spotsLeft", { n: String(spotsLeft) })}
         </Text>
       </View>
       <View style={{ height: 3, backgroundColor: Colors.border }}>
@@ -341,7 +342,7 @@ export default function Me() {
             textAlign: "center",
           }}
         >
-          ACCOUNT · SETTINGS
+          {t("accountSettings")}
         </Text>
         <View style={{ width: 20 }} />
       </View>
@@ -417,36 +418,36 @@ export default function Me() {
         )}
 
         {/* PREFERENCES */}
-        <SectionLabel title="PREFERENCES" />
+        <SectionLabel title={t("preferences")} />
         <View style={{ marginHorizontal: 20, borderWidth: 1, borderColor: Colors.border, backgroundColor: SECTION_BG }}>
-          <SettingRow label="Currency"          value="USD · $"         />
-          <SettingRow label="Week starts"        value="Sunday"          />
-          <SettingRow label="Default category"   value="Outerwear"       />
-          <SettingRow label="Depreciation model" value="2yr · straight" last />
+          <SettingRow label={t("currency")}           value="USD · $"              />
+          <SettingRow label={t("weekStarts")}        value={t("sunday")}          />
+          <SettingRow label={t("defaultCategory")}   value={t("outerwear")}       />
+          <SettingRow label={t("depreciationModel")} value="2yr · straight" last />
         </View>
 
         {/* NOTIFICATIONS */}
-        <SectionLabel title="NOTIFICATIONS" />
+        <SectionLabel title={t("notifications")} />
         <View style={{ marginHorizontal: 20, borderWidth: 1, borderColor: Colors.border, backgroundColor: SECTION_BG }}>
-          <ToggleRow label="Daily log reminder"     value={notifDaily}       onChange={setNotifDaily}      />
-          <ToggleRow label="Underperformer alerts"  value={notifUnderperf}   onChange={setNotifUnderperf}  />
-          <ToggleRow label="Shareholder activity"   value={notifShareholder} onChange={setNotifShareholder} />
-          <ToggleRow label="Weekly earnings report" value={notifWeekly}      onChange={setNotifWeekly} last />
+          <ToggleRow label={t("dailyReminder")}        value={notifDaily}       onChange={setNotifDaily}      />
+          <ToggleRow label={t("underperformerAlerts")} value={notifUnderperf}   onChange={setNotifUnderperf}  />
+          <ToggleRow label={t("shareholderActivity")}  value={notifShareholder} onChange={setNotifShareholder} />
+          <ToggleRow label={t("weeklyReport")}         value={notifWeekly}      onChange={setNotifWeekly} last />
         </View>
 
         {/* DATA */}
-        <SectionLabel title="DATA" />
+        <SectionLabel title={t("data")} />
         <View style={{ marginHorizontal: 20, borderWidth: 1, borderColor: Colors.border, backgroundColor: SECTION_BG }}>
           <SettingRow
-            label="Connected accounts"
+            label={t("connectedAccounts")}
             value={connectedAccount}
           />
           <SettingRow
-            label="Export ledger"
+            label={t("exportLedger")}
             value="CSV · PDF"
           />
           <SettingRow
-            label="Portfolio analytics"
+            label={t("portfolioAnalytics")}
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             onPress={() => router.navigate("/(app)/(tabs)/stats" as any)}
             value=""
@@ -455,7 +456,7 @@ export default function Me() {
         </View>
 
         {/* DANGER */}
-        <SectionLabel title="ACCOUNT" />
+        <SectionLabel title={t("account")} />
         <View style={{ marginHorizontal: 20, borderWidth: 1, borderColor: Colors.border, backgroundColor: SECTION_BG }}>
           <TouchableOpacity
             onPress={signOut}
@@ -474,7 +475,7 @@ export default function Me() {
                 color: Colors.cpw,
               }}
             >
-              Sign out
+              {t("signOut")}
             </Text>
           </TouchableOpacity>
         </View>
@@ -490,7 +491,7 @@ export default function Me() {
             marginTop: 28,
           }}
         >
-          WEARS · V1.0.0 · COST BASIS: JUSTIFIED
+          {t("footerVersion")}
         </Text>
       </ScrollView>
     </SafeAreaView>

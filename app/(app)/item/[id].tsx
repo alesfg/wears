@@ -18,6 +18,7 @@ import { Colors } from "@/constants/theme";
 import { OCCASIONS, getTier, TIERS } from "@/constants/config";
 import { posthog, Events } from "@/lib/posthog";
 import type { WearInsert, ItemWithWears } from "@/lib/database.types";
+import { t } from "@/lib/i18n";
 
 const { width } = Dimensions.get("window");
 type Tab = "ticker" | "progress" | "log";
@@ -49,7 +50,7 @@ function TickerTab({
       {/* CPW hero */}
       <View style={{ alignItems: "center", paddingVertical: 24 }}>
         <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 2, marginBottom: 4 }}>
-          COST PER WEAR
+          {t("costPerWear")}
         </Text>
         <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 68, color: Colors.cpw, lineHeight: 76 }}>
           ${item.cpw.toFixed(2)}
@@ -62,8 +63,8 @@ function TickerTab({
           <View style={{ height: 2, backgroundColor: Colors.cpw, width: `${progress * 100}%` }} />
         </View>
         <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1, textAlign: "center" }}>
-          {item.wears.length} WEARS
-          {nextTier ? ` · NEXT: ${nextTier.name.toUpperCase()} AT $${nextTier.maxCpw}/WEAR` : " · FREE BASICALLY 🌸"}
+          {item.wears.length} {t("wears")}
+          {nextTier ? ` ${t("nextTierPrefix")} ${nextTier.name.toUpperCase()} AT $${nextTier.maxCpw}${t("perWearShort")}` : ` ${t("freeBascially")}`}
         </Text>
       </View>
 
@@ -71,9 +72,9 @@ function TickerTab({
 
       {/* Stats row */}
       <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 20 }}>
-        <StatCell label="WEARS" value={`${item.wears.length}×`} />
-        <StatCell label="SPENT" value={`$${item.price}`} />
-        <StatCell label="SAVED VS NEW" value={`$${savedVsNew.toFixed(0)}`} />
+        <StatCell label={t("wears")} value={`${item.wears.length}×`} />
+        <StatCell label={t("spent")} value={`$${item.price}`} />
+        <StatCell label={t("savedVsNew")} value={`$${savedVsNew.toFixed(0)}`} />
       </View>
 
       <DashedLine />
@@ -82,7 +83,7 @@ function TickerTab({
       {item.wears.length > 0 && (
         <View style={{ paddingTop: 16, paddingBottom: 8 }}>
           <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10 }}>
-            RECENT WEARS
+            {t("recentWears")}
           </Text>
           {item.wears.slice(0, 4).map((w) => (
             <View key={w.id} style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 6 }}>
@@ -111,7 +112,7 @@ function ProgressTab({ item }: { item: ItemWithWears }) {
       {/* Current tier header */}
       <View style={{ paddingVertical: 20 }}>
         <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 2, marginBottom: 8 }}>
-          CURRENT TIER
+          {t("currentTier")}
         </Text>
         <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between" }}>
           <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 34, color: Colors.ink }}>
@@ -191,9 +192,9 @@ function ProgressTab({ item }: { item: ItemWithWears }) {
 
       {/* Stats */}
       <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 20 }}>
-        <StatCell label="WEARS" value={`${item.wears.length}×`} />
-        <StatCell label="SPENT" value={`$${item.price}`} />
-        <StatCell label="SAVED VS NEW" value={`$${savedVsNew.toFixed(0)}`} />
+        <StatCell label={t("wears")} value={`${item.wears.length}×`} />
+        <StatCell label={t("spent")} value={`$${item.price}`} />
+        <StatCell label={t("savedVsNew")} value={`$${savedVsNew.toFixed(0)}`} />
       </View>
     </View>
   );
@@ -224,16 +225,16 @@ function LogTab({ item }: { item: ItemWithWears }) {
 
       {/* Column headers */}
       <View style={{ flexDirection: "row", paddingVertical: 8 }}>
-        <Text style={[colHeader, { flex: 3 }]}>DATE</Text>
-        <Text style={[colHeader, { flex: 4 }]}>OCCASION</Text>
-        <Text style={[colHeader, { flex: 3, textAlign: "right" }]}>CPW THEN</Text>
+        <Text style={[colHeader, { flex: 3 }]}>{t("dateCol")}</Text>
+        <Text style={[colHeader, { flex: 4 }]}>{t("occasionCol")}</Text>
+        <Text style={[colHeader, { flex: 3, textAlign: "right" }]}>{t("cpwThenCol")}</Text>
       </View>
 
       <DashedLine />
 
       {item.wears.length === 0 ? (
         <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, textAlign: "center", paddingVertical: 24 }}>
-          NO WEARS LOGGED YET
+          {t("noWearsYet")}
         </Text>
       ) : (
         <>
@@ -256,18 +257,18 @@ function LogTab({ item }: { item: ItemWithWears }) {
 
           <DashedLine style={{ marginTop: 8 }} />
           <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 12 }}>
-            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted }}>TOTAL WEARS</Text>
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted }}>{t("totalWears")}</Text>
             <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.ink }}>{item.wears.length}</Text>
           </View>
           <View style={{ flexDirection: "row", justifyContent: "space-between", paddingBottom: 16 }}>
-            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted }}>NET CPW</Text>
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted }}>{t("netCpw")}</Text>
             <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 16, color: Colors.cpw }}>
               ${item.cpw.toFixed(2)}
             </Text>
           </View>
           <DashedLine />
           <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, textAlign: "center", letterSpacing: 2, paddingVertical: 12 }}>
-            * KEEP THIS RECEIPT *
+            {t("keepReceipt")}
           </Text>
         </>
       )}
@@ -351,7 +352,7 @@ export default function ItemDetail() {
         {/* Item name + meta */}
         <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 4 }}>
           <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>
-            {item.brand ? `${item.brand.toUpperCase()} · ` : ""}ACQUIRED {acquiredLabel}
+            {item.brand ? `${item.brand.toUpperCase()} · ` : ""}{t("acquired")} {acquiredLabel}
           </Text>
           <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 28, color: Colors.ink }}>
             {item.name}
@@ -409,14 +410,14 @@ export default function ItemDetail() {
           }}
         >
           <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, marginBottom: 12 }}>
-            OCCASION (OPTIONAL)
+            {t("occasionOptional")}
           </Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
             <TouchableOpacity
               onPress={() => handleLogWear(undefined)}
               style={{ paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: Colors.border }}
             >
-              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>SKIP</Text>
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>{t("skip")}</Text>
             </TouchableOpacity>
             {OCCASIONS.map((occ) => (
               <TouchableOpacity
@@ -446,7 +447,7 @@ export default function ItemDetail() {
             <ActivityIndicator color={Colors.cream} />
           ) : (
             <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.cream, letterSpacing: 2, textTransform: "uppercase" }}>
-              + I wore this today
+              {t("iWoredThis")}
             </Text>
           )}
         </TouchableOpacity>
