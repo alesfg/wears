@@ -1,10 +1,12 @@
-import { getLocales } from "expo-localization";
-
 type Locale = "en" | "es";
 
 function detectLocale(): Locale {
-  const tag = getLocales()[0]?.languageCode ?? "en";
-  return tag.startsWith("es") ? "es" : "en";
+  try {
+    const tag = Intl.DateTimeFormat().resolvedOptions().locale;
+    return tag.startsWith("es") ? "es" : "en";
+  } catch {
+    return "en";
+  }
 }
 
 export const locale = detectLocale();

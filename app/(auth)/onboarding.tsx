@@ -317,11 +317,7 @@ export default function Onboarding() {
 
         {/* Pull quote */}
         <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 22, color: Colors.ink, lineHeight: 32, marginTop: 32 }}>
-          {t("oatMilkQuote", { n: "30" }).split("30").map((part, i, arr) =>
-            i < arr.length - 1
-              ? [part, <Text key={i} style={{ color: Colors.cpw }}>30</Text>]
-              : part
-          )}
+          {(([pre, post]) => <>{pre}<Text style={{ color: Colors.cpw }}>30</Text>{post}</>)(t("oatMilkQuote").split("{n}"))}
         </Text>
       </ScrollView>
 
