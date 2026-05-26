@@ -95,8 +95,15 @@ function ReceiptDemo() {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function Welcome() {
   const router = useRouter();
-  const { signInWithApple } = useAuth();
+  const { signInWithApple, signInAsGuest } = useAuth();
   const [appleLoading, setAppleLoading] = useState(false);
+  const [guestLoading, setGuestLoading] = useState(false);
+
+  const handleGuest = async () => {
+    setGuestLoading(true);
+    await signInAsGuest();
+    setGuestLoading(false);
+  };
 
   const handleApple = async () => {
     setAppleLoading(true);
@@ -222,6 +229,53 @@ export default function Welcome() {
           <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 17, color: Colors.ink }}>
             Continue with email
           </Text>
+        </TouchableOpacity>
+
+        {/* OR divider */}
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 4 }}>
+          <View style={{ flex: 1, height: 1, backgroundColor: "#DDD6CE" }} />
+          <Text
+            style={{
+              fontFamily: "DMSans_400Regular",
+              fontSize: 10,
+              color: Colors.muted,
+              letterSpacing: 2,
+            }}
+          >
+            OR
+          </Text>
+          <View style={{ flex: 1, height: 1, backgroundColor: "#DDD6CE" }} />
+        </View>
+
+        {/* Browse as guest */}
+        <TouchableOpacity
+          onPress={handleGuest}
+          disabled={guestLoading}
+          style={{ alignItems: "center", paddingVertical: 6 }}
+          activeOpacity={0.7}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <Text
+              style={{
+                fontFamily: "DMSans_400Regular",
+                fontSize: 15,
+                color: Colors.ink,
+                textDecorationLine: "underline",
+              }}
+            >
+              {guestLoading ? "Loading..." : "Browse as a guest"}
+            </Text>
+            <Text
+              style={{
+                fontFamily: "DMSans_400Regular",
+                fontSize: 10,
+                color: Colors.muted,
+                letterSpacing: 1.5,
+              }}
+            >
+              · NO ACCT
+            </Text>
+          </View>
         </TouchableOpacity>
 
         {/* Legal footer */}
