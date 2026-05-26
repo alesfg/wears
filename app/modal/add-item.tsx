@@ -19,13 +19,13 @@ import { supabase } from "@/lib/supabase";
 import { DashedLine } from "@/components/ui/DashedLine";
 import { Colors } from "@/constants/theme";
 import { CATEGORIES } from "@/constants/config";
+import { analyzeGarment } from "@/lib/anthropic";
 import type { ItemInsert } from "@/lib/database.types";
 import { t } from "@/lib/i18n";
 
 type Category = (typeof CATEGORIES)[number];
 
 function toIsoDate(input: string): string {
-  // Accepts YYYY-MM-DD or tries to parse
   const d = new Date(input);
   if (!isNaN(d.getTime())) return d.toISOString().split("T")[0];
   return new Date().toISOString().split("T")[0];
@@ -45,6 +45,7 @@ export default function AddItem() {
   );
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [scanning, setScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const pickImage = async () => {
@@ -54,17 +55,29 @@ export default function AddItem() {
       mediaTypes: ["images"],
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 0.8,
+      quality: 0.7,
+      base64: true,
     });
     if (!result.canceled && result.assets[0]) {
-      setImageUri(result.assets[0].uri);
+      const asset = result.assets[0];
+      setImageUri(asset.uri);
+
+      if (asset.base64) {
+        setScanning(true);
+        const analysis = await analyzeGarment(asset.base64);
+        if (analysis) {
+          if (analysis.name && !name) setName(analysis.name);
+          if (analysis.brand && !brand) setBrand(analysis.brand);
+          if (analysis.category && !category) setCategory(analysis.category);
+        }
+        setScanning(false);
+      }
     }
   };
 
   const uploadImage = async (uri: string, userId: string): Promise<string | null> => {
     try {
       const rawExt = (uri.split(".").pop() ?? "jpg").split("?")[0].toLowerCase();
-      // jpg is not a valid MIME type — must be jpeg
       const ext = rawExt === "jpg" ? "jpeg" : rawExt;
       const path = `${userId}/${Date.now()}.${ext}`;
       const arraybuffer = await fetch(uri).then((r) => r.arrayBuffer());
@@ -150,9 +163,10 @@ export default function AddItem() {
           contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Photo */}
+          {/* Photo + scan */}
           <TouchableOpacity
             onPress={pickImage}
+            disabled={scanning}
             style={{
               width: "100%",
               aspectRatio: 1,
@@ -168,28 +182,62 @@ export default function AddItem() {
             activeOpacity={0.7}
           >
             {imageUri ? (
-              <Image
-                source={{ uri: imageUri }}
-                style={{ width: "100%", height: "100%" }}
-                resizeMode="cover"
-              />
+              <>
+                <Image
+                  source={{ uri: imageUri }}
+                  style={{ width: "100%", height: "100%" }}
+                  resizeMode="cover"
+                />
+                {scanning && (
+                  <View
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      backgroundColor: "rgba(26,26,26,0.55)",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 10,
+                    }}
+                  >
+                    <ActivityIndicator color={Colors.cream} />
+                    <Text style={{
+                      fontFamily: "DMSans_400Regular",
+                      fontSize: 9,
+                      color: Colors.cream,
+                      letterSpacing: 2,
+                      textTransform: "uppercase",
+                    }}>
+                      ANALYZING...
+                    </Text>
+                  </View>
+                )}
+              </>
             ) : (
-              <Text
-                style={{
+              <View style={{ alignItems: "center", gap: 10 }}>
+                <Text style={{
                   fontFamily: "DMSans_400Regular",
                   fontSize: 10,
                   color: Colors.muted,
                   letterSpacing: 1.5,
                   textTransform: "uppercase",
-                }}
-              >
-                {t("tapToAddPhoto")}
-              </Text>
+                }}>
+                  {t("tapToAddPhoto")}
+                </Text>
+                <Text style={{
+                  fontFamily: "DMSans_400Regular",
+                  fontSize: 8,
+                  color: Colors.border,
+                  letterSpacing: 1.5,
+                  textTransform: "uppercase",
+                }}>
+                  ✦ AI WILL FILL THE FORM
+                </Text>
+              </View>
             )}
           </TouchableOpacity>
 
           {/* Name */}
-          <Field label={t("itemName")}>
+          <Field label={t("itemName")} scanning={scanning && !name}>
             <TextInput
               value={name}
               onChangeText={setName}
@@ -197,11 +245,12 @@ export default function AddItem() {
               placeholderTextColor={Colors.muted}
               style={inputStyle}
               autoCapitalize="words"
+              editable={!scanning}
             />
           </Field>
 
           {/* Brand */}
-          <Field label={t("brand")}>
+          <Field label={t("brand")} scanning={scanning && !brand}>
             <TextInput
               value={brand}
               onChangeText={setBrand}
@@ -209,10 +258,11 @@ export default function AddItem() {
               placeholderTextColor={Colors.muted}
               style={inputStyle}
               autoCapitalize="words"
+              editable={!scanning}
             />
           </Field>
 
-          {/* Cost Basis */}
+          {/* Cost Basis — never pre-filled, always user input */}
           <Field label={t("costBasisField")}>
             <TextInput
               value={price}
@@ -238,7 +288,10 @@ export default function AddItem() {
 
           {/* Category */}
           <View style={{ marginBottom: 24 }}>
-            <Text style={labelStyle}>{t("category")}</Text>
+            <Text style={[labelStyle, scanning && !category ? { color: Colors.cpw } : {}]}>
+              {t("category")}
+              {scanning && !category ? " · SCANNING..." : ""}
+            </Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
               <View style={{ flexDirection: "row", gap: 8 }}>
                 {CATEGORIES.map((cat) => (
@@ -288,11 +341,12 @@ export default function AddItem() {
           {/* Save */}
           <TouchableOpacity
             onPress={handleSave}
-            disabled={loading}
+            disabled={loading || scanning}
             style={{
               backgroundColor: Colors.ink,
               paddingVertical: 16,
               alignItems: "center",
+              opacity: scanning ? 0.5 : 1,
             }}
             activeOpacity={0.85}
           >
@@ -318,10 +372,23 @@ export default function AddItem() {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+  scanning,
+}: {
+  label: string;
+  children: React.ReactNode;
+  scanning?: boolean;
+}) {
   return (
     <View style={{ marginBottom: 20 }}>
-      <Text style={labelStyle}>{label}</Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 6 }}>
+        <Text style={labelStyle}>{label}</Text>
+        {scanning && (
+          <ActivityIndicator size="small" color={Colors.cpw} style={{ transform: [{ scale: 0.6 }] }} />
+        )}
+      </View>
       {children}
     </View>
   );
@@ -333,7 +400,6 @@ const labelStyle = {
   color: Colors.muted,
   letterSpacing: 1.5,
   textTransform: "uppercase" as const,
-  marginBottom: 6,
 };
 
 const inputStyle = {
