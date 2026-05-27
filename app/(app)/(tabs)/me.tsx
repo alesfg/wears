@@ -262,7 +262,7 @@ function UsageBar({ count, limit }: { count: number; limit: number }) {
             textTransform: "uppercase",
           }}
         >
-          PIECES · {count} / {limit}
+          {t("pieceCounter", { count: String(count), limit: String(limit) })}
         </Text>
         <Text
           style={{
@@ -307,8 +307,8 @@ export default function Me() {
     : null;
 
   const subline = isPro
-    ? `@${username} · SHAREHOLDER SINCE ${createdAt ?? "2024"}`
-    : `@${username} · FREE TIER · ${items.length} OF ${FREE_TIER_ITEM_LIMIT} PIECES`;
+    ? `@${username} · ${t("shareholderSince")} ${createdAt ?? "2024"}`
+    : `@${username} · ${t("sublineFreeTier", { count: String(items.length), limit: String(FREE_TIER_ITEM_LIMIT) })}`;
 
   const provider = (user?.app_metadata?.provider as string | undefined) ?? "email";
   const connectedAccount = provider === "apple" ? "Apple ID" : provider === "google" ? "Google" : "Email";
@@ -423,7 +423,7 @@ export default function Me() {
           <SettingRow label={t("currency")}           value="USD · $"              />
           <SettingRow label={t("weekStarts")}        value={t("sunday")}          />
           <SettingRow label={t("defaultCategory")}   value={t("outerwear")}       />
-          <SettingRow label={t("depreciationModel")} value="2yr · straight" last />
+          <SettingRow label={t("depreciationModel")} value={t("depreciationStraight")} last />
         </View>
 
         {/* NOTIFICATIONS */}

@@ -9,7 +9,7 @@ function detectLocale(): Locale {
   }
 }
 
-export const locale = detectLocale();
+export const locale: Locale = "es"; // DEV: force Spanish — revert before prod
 export const isEs = locale === "es";
 
 // ─── Strings ─────────────────────────────────────────────────────────────────
@@ -111,6 +111,44 @@ const en = {
   everyWearDrops: "EVERY WEAR DROPS THE COST",
   oatMilkQuote: "Wear it {n} times and it costs less per wear than your weekly oat milk.",
   openCloset: "Open my closet →",
+
+  // Calendar — month view
+  calOutfitHistory: "OUTFIT · HISTORY",
+  calAnnualHeatmap: "ANNUAL · HEATMAP",
+  calWearLog: "WEAR · LOG",
+  calTabMonth: "MONTH",
+  calTabHeatmap: "HEATMAP",
+  calTabList: "LIST",
+  calInProgress: "IN PROGRESS",
+  calComplete: "COMPLETE",
+  calUpcoming: "UPCOMING",
+  calLogged: "LOGGED",
+  calSkipped: "SKIPPED",
+  calStreak: "STREAK",
+  calNotLogged: "NOT\nLOGGED",
+  calToday: "TODAY",
+  calYesterday: "YESTERDAY",
+  calPieces: "PIECES",
+  calEarned: "EARNED",
+  calNoWears: "No wears logged yet.",
+  // Calendar — heatmap
+  calDaysDressed: "days dressed",
+  calTrailingWeeks: "TRAILING · {n} · WEEKS",
+  calLess: "LESS",
+  calMore: "MORE",
+  calHighlights: "HIGHLIGHTS",
+  calLongestStreak: "LONGEST STREAK",
+  calDressedDownMonth: "DRESSED-DOWN MONTH",
+  calPeakWeek: "PEAK WEEK",
+  calDays: "days",
+  calLogs: "logs",
+
+  // Me — hardcoded sublines
+  shareholderSince: "SHAREHOLDER SINCE",
+  sublineFreeTier: "FREE TIER · {count} OF {limit} PIECES",
+  pieceCounter: "PIECES · {count} / {limit}",
+  depreciationStraight: "2yr · straight",
+  calendarSoon: "CALENDAR · COMING SOON",
 
   // Me / settings
   accountSettings: "ACCOUNT · SETTINGS",
@@ -238,6 +276,44 @@ const es: typeof en = {
   everyWearDrops: "CADA USO BAJA EL COSTO",
   oatMilkQuote: "Úsala {n} veces y cuesta menos por uso que tu oat milk semanal.",
   openCloset: "Abrir mi closet →",
+
+  // Calendar — month view
+  calOutfitHistory: "HISTORIAL · DE · OUTFITS",
+  calAnnualHeatmap: "HEATMAP · ANUAL",
+  calWearLog: "REGISTRO · DE · USOS",
+  calTabMonth: "MES",
+  calTabHeatmap: "HEATMAP",
+  calTabList: "LISTA",
+  calInProgress: "EN PROGRESO",
+  calComplete: "COMPLETO",
+  calUpcoming: "PRÓXIMO",
+  calLogged: "REGISTRADO",
+  calSkipped: "SIN REGISTRO",
+  calStreak: "RACHA",
+  calNotLogged: "SIN\nREGISTRO",
+  calToday: "HOY",
+  calYesterday: "AYER",
+  calPieces: "PRENDAS",
+  calEarned: "GANADO",
+  calNoWears: "Aún sin usos registrados.",
+  // Calendar — heatmap
+  calDaysDressed: "días vestida",
+  calTrailingWeeks: "ÚLTIMAS · {n} · SEMANAS",
+  calLess: "MENOS",
+  calMore: "MÁS",
+  calHighlights: "DESTACADOS",
+  calLongestStreak: "RACHA MÁS LARGA",
+  calDressedDownMonth: "MES CON MENOS USOS",
+  calPeakWeek: "SEMANA MÁS ACTIVA",
+  calDays: "días",
+  calLogs: "usos",
+
+  // Me — hardcoded sublines
+  shareholderSince: "ACCIONISTA DESDE",
+  sublineFreeTier: "PLAN GRATIS · {count} DE {limit} PRENDAS",
+  pieceCounter: "PRENDAS · {count} / {limit}",
+  depreciationStraight: "2a · lineal",
+  calendarSoon: "CALENDARIO · PRÓXIMAMENTE",
 
   // Me / settings
   accountSettings: "CUENTA · AJUSTES",
