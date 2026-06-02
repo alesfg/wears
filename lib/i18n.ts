@@ -9,7 +9,7 @@ function detectLocale(): Locale {
   }
 }
 
-export const locale: Locale = "es"; // DEV: force Spanish — revert before prod
+export const locale: Locale = detectLocale();
 export const isEs = locale === "es";
 
 // ─── Strings ─────────────────────────────────────────────────────────────────
