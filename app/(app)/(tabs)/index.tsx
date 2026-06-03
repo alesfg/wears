@@ -20,6 +20,7 @@ import { useAnalytics } from "@/hooks/useAnalytics";
 import { DashedLine } from "@/components/ui/DashedLine";
 import { ItemRow } from "@/components/features/ItemRow";
 import { Colors } from "@/constants/theme";
+import { FREE_TIER_ITEM_LIMIT } from "@/constants/config";
 import { supabase } from "@/lib/supabase";
 import type { ItemWithWears } from "@/lib/database.types";
 import { t } from "@/lib/i18n";
@@ -110,7 +111,7 @@ export default function ClosetLedger() {
   const router = useRouter();
   const { user, setSession } = useUserStore();
   const { items, isLoading, fetchItems } = useItemStore();
-  const { isAtFreeLimit } = usePaywall();
+  const { isAtFreeLimit, isPro } = usePaywall();
   const { track, Events } = useAnalytics();
   const [showWearPicker, setShowWearPicker] = useState(false);
   const [showNamePrompt, setShowNamePrompt] = useState(false);
@@ -198,6 +199,22 @@ export default function ClosetLedger() {
           </View>
         )}
       />
+
+      {/* Subtle upgrade nudge when 1 slot left on free tier */}
+      {!isPro && items.length === FREE_TIER_ITEM_LIMIT - 1 && (
+        <TouchableOpacity
+          onPress={() => router.push("/modal/paywall")}
+          style={{ marginHorizontal: 20, marginBottom: 8, backgroundColor: "#1A1208", paddingHorizontal: 16, paddingVertical: 10, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}
+          activeOpacity={0.85}
+        >
+          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: "rgba(245,242,235,0.6)", letterSpacing: 1.5 }}>
+            1 SLOT LEFT ON FREE PLAN
+          </Text>
+          <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 13, color: "#C4503A" }}>
+            Unlock unlimited →
+          </Text>
+        </TouchableOpacity>
+      )}
 
       {/* Always-visible bottom CTA */}
       <View style={{ position: "absolute", bottom: 0, left: 0, right: 0, paddingBottom: 28, paddingHorizontal: 20, paddingTop: 12, backgroundColor: Colors.cream, borderTopWidth: 1, borderTopColor: Colors.border }}>

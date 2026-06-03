@@ -51,6 +51,7 @@ export default function AddItem() {
   const [removingBg, setRemovingBg] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [serviceWarning, setServiceWarning] = useState<string | null>(null);
 
   const processing = scanningAI || removingBg;
 
@@ -74,21 +75,33 @@ export default function AddItem() {
       if (asset.base64) {
         setScanningAI(true);
         setRemovingBg(true);
+        setServiceWarning(null);
 
-        // Run Claude Vision + remove.bg in parallel
-        analyzeGarment(asset.base64).then((analysis) => {
-          if (analysis) {
-            if (analysis.name && !name) setName(analysis.name);
-            if (analysis.brand && !brand) setBrand(analysis.brand);
-            if (analysis.category && !category) setCategory(analysis.category);
-          }
-          setScanningAI(false);
-        });
+        const warnings: string[] = [];
 
-        removeBackground(asset.base64).then((clean) => {
-          if (clean) setCleanImageUri(clean);
-          setRemovingBg(false);
-        });
+        analyzeGarment(asset.base64)
+          .then((analysis) => {
+            if (analysis) {
+              if (analysis.name && !name) setName(analysis.name);
+              if (analysis.brand && !brand) setBrand(analysis.brand);
+              if (analysis.category && !category) setCategory(analysis.category);
+            } else {
+              warnings.push("AI scan unavailable");
+            }
+          })
+          .catch(() => { warnings.push("AI scan unavailable"); })
+          .finally(() => {
+            setScanningAI(false);
+            if (warnings.length) setServiceWarning(warnings.join(" · ") + " — fill in manually");
+          });
+
+        removeBackground(asset.base64)
+          .then((clean) => {
+            if (clean) { setCleanImageUri(clean); }
+            else { setServiceWarning("Background removal unavailable — using original photo"); }
+          })
+          .catch(() => { setServiceWarning("Background removal unavailable — using original photo"); })
+          .finally(() => setRemovingBg(false));
       }
     }
   };
@@ -345,6 +358,12 @@ export default function AddItem() {
               </ScrollView>
             </Field>
           </View>
+
+          {serviceWarning && !processing && (
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, marginBottom: 8, letterSpacing: 0.3 }}>
+              ⚠ {serviceWarning}
+            </Text>
+          )}
 
           {error && (
             <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.cpw, marginBottom: 12, letterSpacing: 0.5 }}>

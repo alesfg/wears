@@ -12,6 +12,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { useItemStore } from "@/store/itemStore";
 import { useUserStore } from "@/store/userStore";
+import { usePaywall } from "@/hooks/usePaywall";
 import { DashedLine } from "@/components/ui/DashedLine";
 import { TierBadge } from "@/components/ui/TierBadge";
 import { Colors } from "@/constants/theme";
@@ -35,9 +36,9 @@ function calcProgress(cpw: number, price: number): number {
 
 // ─── Ticker tab ──────────────────────────────────────────────────────────────
 function TickerTab({
-  item,
+  item, isPro, onUpgrade,
 }: {
-  item: ItemWithWears;
+  item: ItemWithWears; isPro: boolean; onUpgrade: () => void;
 }) {
   const tierIdx = TIERS.findIndex((t) => t.name === getTier(item.cpw));
   const nextTier = TIERS[tierIdx + 1];
@@ -94,6 +95,30 @@ function TickerTab({
             </View>
           ))}
         </View>
+      )}
+
+      {/* Share receipt upsell — visible for free users after ≥1 wear */}
+      {item.wears.length >= 1 && (
+        <>
+          <DashedLine />
+          <TouchableOpacity
+            onPress={onUpgrade}
+            activeOpacity={isPro ? 1 : 0.7}
+            style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 16 }}
+          >
+            <View>
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 3 }}>
+                {isPro ? "SHARE RECEIPT" : "★ PRO · SHARE RECEIPT"}
+              </Text>
+              <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 14, color: Colors.ink }}>
+                {isPro ? "Send this receipt." : `$${item.cpw.toFixed(2)}/wear. Make them understand.`}
+              </Text>
+            </View>
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: isPro ? Colors.cpw : Colors.muted }}>
+              {isPro ? "→" : "🔒"}
+            </Text>
+          </TouchableOpacity>
+        </>
       )}
     </View>
   );
@@ -286,6 +311,7 @@ export default function ItemDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { user } = useUserStore();
+  const { isPro } = usePaywall();
   const { items, logWear } = useItemStore();
 
   const item = useMemo(() => items.find((i) => i.id === id), [items, id]);
@@ -394,7 +420,16 @@ export default function ItemDetail() {
         </View>
 
         {/* Tab content */}
-        {activeTab === "ticker" && <TickerTab item={item} />}
+        {activeTab === "ticker" && (
+          <TickerTab
+            item={item}
+            isPro={isPro}
+            onUpgrade={() => router.push(isPro
+              ? { pathname: "/modal/share", params: { id: item.id } }
+              : "/modal/paywall" as never
+            )}
+          />
+        )}
         {activeTab === "progress" && <ProgressTab item={item} />}
         {activeTab === "log" && <LogTab item={item} />}
       </ScrollView>
