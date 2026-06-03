@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Colors } from "@/constants/theme";
+import { posthog, Events } from "@/lib/posthog";
 
 const TAB_HEIGHT = 68;
 const CENTER_SIZE = 58;
@@ -80,6 +81,7 @@ function CustomTabBar({ state, navigation }: BottomTabBarProps) {
       canPreventDefault: true,
     });
     if (!isFocused(routeName) && !event.defaultPrevented) {
+      posthog.capture(Events.TAB_VIEWED, { tab: routeName });
       navigation.navigate(routeName, undefined);
     }
   };

@@ -41,7 +41,8 @@ export default function Login() {
       router.replace("/(auth)/onboarding");
     } else {
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-      if (signInError) setError(signInError.message);
+      if (signInError) { setError(signInError.message); }
+      else { posthog.capture(Events.SIGN_IN, { method: "email" }); }
     }
     setLoading(false);
   };
@@ -50,7 +51,8 @@ export default function Login() {
     setAppleLoading(true);
     setError(null);
     const err = await signInWithApple();
-    if (err) setError(err);
+    if (err) { setError(err); }
+    else { posthog.capture(Events.SIGN_IN, { method: "apple" }); }
     setAppleLoading(false);
     // session change → AuthGuard redirects to /(app)
   };

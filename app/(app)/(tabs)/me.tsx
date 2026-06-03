@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Colors } from "@/constants/theme";
 import { FREE_TIER_ITEM_LIMIT } from "@/constants/config";
 import { t } from "@/lib/i18n";
+import { posthog, Events } from "@/lib/posthog";
 
 const SECTION_BG = "#FFFFFF";
 
@@ -253,7 +254,8 @@ export default function Me() {
   const { user } = useUserStore();
   const { items } = useItemStore();
   const { isPro } = usePaywall();
-  const { signOut } = useAuth();
+  const { signOut: _signOut } = useAuth();
+  const signOut = () => { posthog.capture(Events.SIGN_OUT); _signOut(); };
 
   const displayName = user?.user_metadata?.display_name ?? user?.email?.split("@")[0] ?? "You";
   const username    = user?.email?.split("@")[0]?.toLowerCase() ?? "you";

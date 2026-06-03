@@ -16,6 +16,7 @@ import { useItemStore } from "@/store/itemStore";
 import { useUserStore } from "@/store/userStore";
 import { getTier } from "@/constants/config";
 import { Colors } from "@/constants/theme";
+import { posthog, Events } from "@/lib/posthog";
 import type { ItemWithWears } from "@/lib/database.types";
 
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -460,8 +461,18 @@ export default function Wrapped() {
   const progress = useRef(new Animated.Value(0)).current;
   const animRef = useRef<Animated.CompositeAnimation | null>(null);
 
+  useEffect(() => {
+    posthog.capture(Events.WRAPPED_STARTED);
+  }, []);
+
   const advance = useCallback(() => {
-    setSlide((s) => Math.min(s + 1, TOTAL_SLIDES - 1));
+    setSlide((s) => {
+      const next = Math.min(s + 1, TOTAL_SLIDES - 1);
+      if (next === TOTAL_SLIDES - 1 && s !== TOTAL_SLIDES - 1) {
+        posthog.capture(Events.WRAPPED_COMPLETED);
+      }
+      return next;
+    });
   }, []);
 
   const retreat = useCallback(() => {

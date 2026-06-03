@@ -198,7 +198,8 @@ export default function Paywall() {
     setLoading("restore");
     const ok = await restore();
     setLoading(null);
-    if (!ok) Alert.alert("Nothing to restore", "No previous purchases found.");
+    if (ok) { posthog.capture(Events.PURCHASE_RESTORED); }
+    else { Alert.alert("Nothing to restore", "No previous purchases found."); }
   };
 
   return (
@@ -215,7 +216,7 @@ export default function Paywall() {
           }}
         >
           <TouchableOpacity
-            onPress={() => router.back()}
+            onPress={() => { posthog.capture(Events.PAYWALL_DISMISSED); router.back(); }}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             style={{
               width: 36,

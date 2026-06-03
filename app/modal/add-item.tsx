@@ -23,6 +23,7 @@ import { analyzeGarment } from "@/lib/anthropic";
 import { removeBackground } from "@/lib/removebg";
 import type { ItemInsert } from "@/lib/database.types";
 import { t } from "@/lib/i18n";
+import { posthog, Events } from "@/lib/posthog";
 
 type Category = (typeof CATEGORIES)[number];
 
@@ -161,6 +162,11 @@ export default function AddItem() {
     const result = await addItem(itemData, user.id);
     setLoading(false);
     if (result) {
+      posthog.capture(Events.ITEM_ADDED, {
+        category: itemData.category ?? "none",
+        price: itemData.price,
+        has_image: !!image_url,
+      });
       router.back();
     } else {
       setError(t("failedToSave"));

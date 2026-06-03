@@ -3,6 +3,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useMemo } from "react";
 import { Colors } from "@/constants/theme";
+import { posthog, Events } from "@/lib/posthog";
 import {
   useWatchlistStore,
   getProjectedCpw,
@@ -334,7 +335,10 @@ export default function Watchlist() {
         renderItem={({ item }) => (
           <WatchlistRow
             item={item}
-            onPress={() => router.push(`/(app)/watchlist/${item.id}` as never)}
+            onPress={() => {
+              posthog.capture(Events.WATCHLIST_VIEWED, { item_id: item.id, verdict: item.status });
+              router.push(`/(app)/watchlist/${item.id}` as never);
+            }}
           />
         )}
       />
