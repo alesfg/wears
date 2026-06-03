@@ -58,5 +58,9 @@
     "test": "jest --watchAll=false",
     "lint": "eslint . --ext .ts,.tsx --max-warnings 0"
   },
-  "private": true
+  "private": true,
+  "overrides": {
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  }
 }
