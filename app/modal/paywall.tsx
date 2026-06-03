@@ -19,12 +19,11 @@ const MUTED = "rgba(255,255,255,0.35)";
 const CREAM = "#F5F2EB";
 
 const FEATURES: Array<{ label: string; note: string }> = [
-  { label: "Unlimited pieces",    note: "no 20-item cap" },
-  { label: "Wears Wrapped",       note: "year-in-review story" },
-  { label: "Shareholders feed",   note: "compare with friends" },
-  { label: "CPW projections",     note: '"should I buy?" calc' },
-  { label: "Outfit history",      note: "full calendar export" },
-  { label: "Receipt OCR",         note: "auto-import purchases" },
+  { label: "Unlimited pieces",    note: "no 5-item cap" },
+  { label: "Share exports",       note: "receipt, polaroid, wallet" },
+  { label: "Portfolio analytics", note: "full stats breakdown" },
+  { label: "Watchlist",           note: '"should I buy?" calc' },
+  { label: "Outfit calendar",     note: "month view + heatmap" },
 ];
 
 function FeatureRow({ label, note }: { label: string; note: string }) {
@@ -148,7 +147,7 @@ function PriceCard({
             lineHeight: 40,
           }}
         >
-          {isYearly ? "$29.99" : "$5.99"}
+          {isYearly ? "$29.99" : "$4.99"}
         </Text>
         <Text
           style={{
@@ -158,7 +157,7 @@ function PriceCard({
             marginTop: 3,
           }}
         >
-          {isYearly ? "$2.50 / mo · save 58%" : "per month"}
+          {isYearly ? "$2.50 / mo · save 50%" : "per month"}
         </Text>
       </TouchableOpacity>
     </View>

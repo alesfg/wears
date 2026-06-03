@@ -3,11 +3,9 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  Switch,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { useState } from "react";
 import { Feather } from "@expo/vector-icons";
 import { useUserStore } from "@/store/userStore";
 import { useItemStore } from "@/store/itemStore";
@@ -17,7 +15,6 @@ import { Colors } from "@/constants/theme";
 import { FREE_TIER_ITEM_LIMIT } from "@/constants/config";
 import { t } from "@/lib/i18n";
 
-const TOGGLE_GREEN = "#4CAF50";
 const SECTION_BG = "#FFFFFF";
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -70,39 +67,6 @@ function SettingRow({
           <Feather name="chevron-right" size={13} color={Colors.muted} />
         </View>
       </TouchableOpacity>
-      {!last && <View style={{ height: 1, backgroundColor: Colors.border, marginLeft: 16 }} />}
-    </>
-  );
-}
-
-function ToggleRow({
-  label, value, onChange, last,
-}: {
-  label: string; value: boolean; onChange: (v: boolean) => void; last?: boolean;
-}) {
-  return (
-    <>
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          paddingHorizontal: 16,
-          paddingVertical: 12,
-          minHeight: 52,
-          backgroundColor: SECTION_BG,
-        }}
-      >
-        <Text style={{ flex: 1, fontFamily: "DMSans_400Regular", fontSize: 15, color: Colors.ink }}>
-          {label}
-        </Text>
-        <Switch
-          value={value}
-          onValueChange={onChange}
-          trackColor={{ false: Colors.border, true: TOGGLE_GREEN }}
-          thumbColor="#FFFFFF"
-          ios_backgroundColor={Colors.border}
-        />
-      </View>
       {!last && <View style={{ height: 1, backgroundColor: Colors.border, marginLeft: 16 }} />}
     </>
   );
@@ -291,17 +255,10 @@ export default function Me() {
   const { isPro } = usePaywall();
   const { signOut } = useAuth();
 
-  // Notification toggles (local state, no persistence yet)
-  const [notifDaily,      setNotifDaily]      = useState(true);
-  const [notifUnderperf,  setNotifUnderperf]  = useState(true);
-  const [notifShareholder, setNotifShareholder] = useState(false);
-  const [notifWeekly,     setNotifWeekly]     = useState(true);
-
   const displayName = user?.user_metadata?.display_name ?? user?.email?.split("@")[0] ?? "You";
   const username    = user?.email?.split("@")[0]?.toLowerCase() ?? "you";
   const initial     = displayName[0]?.toUpperCase() ?? "W";
 
-  // Membership since (account creation date)
   const createdAt = user?.created_at
     ? new Date(user.created_at).toLocaleDateString("en-US", { month: "short", year: "numeric" }).toUpperCase()
     : null;
@@ -417,34 +374,12 @@ export default function Me() {
           </>
         )}
 
-        {/* PREFERENCES */}
-        <SectionLabel title={t("preferences")} />
-        <View style={{ marginHorizontal: 20, borderWidth: 1, borderColor: Colors.border, backgroundColor: SECTION_BG }}>
-          <SettingRow label={t("currency")}           value="USD · $"              />
-          <SettingRow label={t("weekStarts")}        value={t("sunday")}          />
-          <SettingRow label={t("defaultCategory")}   value={t("outerwear")}       />
-          <SettingRow label={t("depreciationModel")} value={t("depreciationStraight")} last />
-        </View>
-
-        {/* NOTIFICATIONS */}
-        <SectionLabel title={t("notifications")} />
-        <View style={{ marginHorizontal: 20, borderWidth: 1, borderColor: Colors.border, backgroundColor: SECTION_BG }}>
-          <ToggleRow label={t("dailyReminder")}        value={notifDaily}       onChange={setNotifDaily}      />
-          <ToggleRow label={t("underperformerAlerts")} value={notifUnderperf}   onChange={setNotifUnderperf}  />
-          <ToggleRow label={t("shareholderActivity")}  value={notifShareholder} onChange={setNotifShareholder} />
-          <ToggleRow label={t("weeklyReport")}         value={notifWeekly}      onChange={setNotifWeekly} last />
-        </View>
-
         {/* DATA */}
         <SectionLabel title={t("data")} />
         <View style={{ marginHorizontal: 20, borderWidth: 1, borderColor: Colors.border, backgroundColor: SECTION_BG }}>
           <SettingRow
             label={t("connectedAccounts")}
             value={connectedAccount}
-          />
-          <SettingRow
-            label={t("exportLedger")}
-            value="CSV · PDF"
           />
           <SettingRow
             label={t("portfolioAnalytics")}
@@ -455,7 +390,7 @@ export default function Me() {
           />
         </View>
 
-        {/* DANGER */}
+        {/* ACCOUNT */}
         <SectionLabel title={t("account")} />
         <View style={{ marginHorizontal: 20, borderWidth: 1, borderColor: Colors.border, backgroundColor: SECTION_BG }}>
           <TouchableOpacity

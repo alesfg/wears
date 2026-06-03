@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useRouter } from "expo-router";
 import { useItemStore } from "@/store/itemStore";
 import { useUserStore } from "@/store/userStore";
+import { usePaywall } from "@/hooks/usePaywall";
 import { DashedLine } from "@/components/ui/DashedLine";
 import { TierBadge } from "@/components/ui/TierBadge";
 import { Colors } from "@/constants/theme";
@@ -30,6 +31,7 @@ export default function Stats() {
   const router = useRouter();
   const { items } = useItemStore();
   const { user } = useUserStore();
+  const { isPro } = usePaywall();
 
   const stats = useMemo(() => {
     if (items.length === 0) return null;
@@ -62,6 +64,35 @@ export default function Stats() {
 
   const now = new Date();
   const period = `${now.toLocaleString("en-US", { month: "short" }).toUpperCase()} ${now.getFullYear()}`;
+
+  if (!isPro) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: Colors.cream }} edges={["top"]}>
+        <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 20, paddingVertical: 12 }}>
+          <TouchableOpacity onPress={() => router.back()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 13, color: Colors.muted }}>{"<"}</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 32 }}>
+          <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 28, color: Colors.ink, textAlign: "center", marginBottom: 12 }}>
+            Portfolio analytics
+          </Text>
+          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 14, color: Colors.muted, textAlign: "center", lineHeight: 22, marginBottom: 28 }}>
+            Full stats, tier breakdown, top performers, and underperformers. Upgrade to unlock.
+          </Text>
+          <TouchableOpacity
+            onPress={() => router.push("/modal/paywall" as never)}
+            style={{ backgroundColor: Colors.ink, paddingVertical: 14, paddingHorizontal: 32 }}
+            activeOpacity={0.85}
+          >
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 13, color: Colors.cream, letterSpacing: 1.5 }}>
+              UPGRADE →
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.cream }} edges={["top"]}>

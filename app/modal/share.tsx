@@ -10,10 +10,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useRef, useState, useMemo } from "react";
 import ViewShot, { type ViewShotRef } from "react-native-view-shot";
-import * as MediaLibrary from "expo-media-library";
+import { Asset as MediaAsset, requestPermissionsAsync } from "expo-media-library";
 import * as Sharing from "expo-sharing";
 import { useItemStore } from "@/store/itemStore";
 import { useUserStore } from "@/store/userStore";
+import { usePaywall } from "@/hooks/usePaywall";
 import { ReceiptShare } from "@/components/features/shares/ReceiptShare";
 import { PolaroidShare } from "@/components/features/shares/PolaroidShare";
 import { WalletPassShare } from "@/components/features/shares/WalletPassShare";
@@ -33,6 +34,7 @@ export default function ShareModal() {
   const router = useRouter();
   const { items } = useItemStore();
   const { user } = useUserStore();
+  const { isPro } = usePaywall();
   const item = useMemo(() => items.find((i) => i.id === id), [items, id]);
 
   const [format, setFormat] = useState<Format>("receipt");
@@ -49,38 +51,75 @@ export default function ShareModal() {
     );
   }
 
+  if (!isPro) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: Colors.cream }} edges={["top", "bottom"]}>
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 16 }}>
+          <TouchableOpacity onPress={() => router.back()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>CLOSE</Text>
+          </TouchableOpacity>
+          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.ink, letterSpacing: 2 }}>SHARE ASSET</Text>
+          <View style={{ width: 44 }} />
+        </View>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 32 }}>
+          <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 28, color: Colors.ink, textAlign: "center", marginBottom: 12 }}>
+            Pro feature
+          </Text>
+          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 14, color: Colors.muted, textAlign: "center", lineHeight: 22, marginBottom: 28 }}>
+            Share your earnings report as a receipt, polaroid, or wallet card. Upgrade to unlock.
+          </Text>
+          <TouchableOpacity
+            onPress={() => { router.back(); router.push("/modal/paywall" as never); }}
+            style={{ backgroundColor: Colors.ink, paddingVertical: 14, paddingHorizontal: 32 }}
+            activeOpacity={0.85}
+          >
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 13, color: Colors.cream, letterSpacing: 1.5 }}>
+              UPGRADE →
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   const capture = async (): Promise<string | null> => {
-    try {
-      if (!shotRef.current) return null;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return await (shotRef.current as any).capture();
-    } catch {
+    if (!shotRef.current) {
+      Alert.alert("Error", "Share view not ready. Try again.");
       return null;
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return await (shotRef.current as any).capture();
   };
 
   const saveToRoll = async () => {
-    const { status } = await MediaLibrary.requestPermissionsAsync();
+    const { status } = await requestPermissionsAsync();
     if (status !== "granted") {
       Alert.alert("Permission needed", "Allow photo library access to save.");
       return;
     }
     setSaving(true);
-    const uri = await capture();
-    if (uri) {
-      await MediaLibrary.saveToLibraryAsync(uri);
+    try {
+      const uri = await capture();
+      if (!uri) { setSaving(false); return; }
+      await MediaAsset.create(uri);
       posthog.capture(Events.SHARE_EXPORTED, { format, item_id: id });
       Alert.alert("Saved!", "Image saved to your camera roll.");
+    } catch (e: unknown) {
+      Alert.alert("Error saving", e instanceof Error ? e.message : String(e));
     }
     setSaving(false);
   };
 
   const shareOut = async () => {
     setSaving(true);
-    const uri = await capture();
-    if (uri && (await Sharing.isAvailableAsync())) {
-      await Sharing.shareAsync(uri, { mimeType: "image/png" });
-      posthog.capture(Events.SHARE_EXPORTED, { format, item_id: id, action: "share" });
+    try {
+      const uri = await capture();
+      if (uri && (await Sharing.isAvailableAsync())) {
+        await Sharing.shareAsync(uri, { mimeType: "image/png" });
+        posthog.capture(Events.SHARE_EXPORTED, { format, item_id: id, action: "share" });
+      }
+    } catch (e: unknown) {
+      Alert.alert("Error sharing", e instanceof Error ? e.message : String(e));
     }
     setSaving(false);
   };
