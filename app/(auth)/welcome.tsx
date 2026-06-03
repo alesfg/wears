@@ -9,10 +9,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import * as AppleAuthentication from "expo-apple-authentication";
+import { Linking } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useAuth } from "@/hooks/useAuth";
 import { Colors } from "@/constants/theme";
 import { t } from "@/lib/i18n";
+
+const PRIVACY_URL = "https://www.floresstudio.app/wears/privacy";
+const TERMS_URL   = "https://www.floresstudio.app/wears/privacy";
 
 // ─── Receipt demo card ────────────────────────────────────────────────────────
 function DashSep() {
@@ -296,31 +300,17 @@ export default function Welcome() {
             {t("legalLine")}
           </Text>
           <View style={{ flexDirection: "row", gap: 6, marginTop: 2 }}>
-            <Text
-              style={{
-                fontFamily: "DMSans_400Regular",
-                fontSize: 9,
-                color: Colors.muted,
-                letterSpacing: 1,
-                textDecorationLine: "underline",
-              }}
-            >
-              {t("terms")}
-            </Text>
-            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1 }}>
-              ·
-            </Text>
-            <Text
-              style={{
-                fontFamily: "DMSans_400Regular",
-                fontSize: 9,
-                color: Colors.muted,
-                letterSpacing: 1,
-                textDecorationLine: "underline",
-              }}
-            >
-              {t("privacy")}
-            </Text>
+            <TouchableOpacity onPress={() => Linking.openURL(TERMS_URL)}>
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1, textDecorationLine: "underline" }}>
+                {t("terms")}
+              </Text>
+            </TouchableOpacity>
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1 }}>·</Text>
+            <TouchableOpacity onPress={() => Linking.openURL(PRIVACY_URL)}>
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1, textDecorationLine: "underline" }}>
+                {t("privacy")}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>

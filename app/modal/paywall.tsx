@@ -147,7 +147,7 @@ function PriceCard({
             lineHeight: 40,
           }}
         >
-          {isYearly ? "$29.99" : "$4.99"}
+          {isYearly ? "$24.99" : "$3.99"}
         </Text>
         <Text
           style={{
@@ -157,7 +157,7 @@ function PriceCard({
             marginTop: 3,
           }}
         >
-          {isYearly ? "$2.50 / mo · save 50%" : "per month"}
+          {isYearly ? "$2.08 / mo · save 48%" : "per month"}
         </Text>
       </TouchableOpacity>
     </View>
