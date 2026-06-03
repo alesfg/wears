@@ -19,7 +19,15 @@
       "expo-media-library",
       "expo-apple-authentication",
       "expo-localization",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#C4503A",
+          "sounds": []
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

@@ -17,6 +17,8 @@ import { useUserStore } from "@/store/userStore";
 import { getTier } from "@/constants/config";
 import { Colors } from "@/constants/theme";
 import { posthog, Events } from "@/lib/posthog";
+import ViewShot, { type ViewShotRef } from "react-native-view-shot";
+import * as SharingLib from "expo-sharing";
 import type { ItemWithWears } from "@/lib/database.types";
 
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -495,11 +497,20 @@ export default function Wrapped() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slide]);
 
+  const shotRef = useRef<ViewShotRef>(null);
+
   const onShare = async () => {
     try {
-      await Share.share({
-        message: `My Wears Wrapped '${year}: ${stats.pieces} pieces, ${stats.totalWears} wears, $${stats.blendedCpw.toFixed(2)} blended CPW. @wears`,
-      });
+      // Capture the current slide as a 9:16 image for Stories
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const uri = shotRef.current ? await (shotRef.current as any).capture() : null;
+      if (uri && await SharingLib.isAvailableAsync()) {
+        await SharingLib.shareAsync(uri, { mimeType: "image/png", dialogTitle: "Share your Wrapped" });
+      } else {
+        await Share.share({
+          message: `My Wears Wrapped '${year}: ${stats.pieces} pieces, ${stats.totalWears} wears, $${stats.blendedCpw.toFixed(2)} blended CPW. @wears`,
+        });
+      }
     } catch { /* ignore */ }
   };
 
@@ -516,7 +527,7 @@ export default function Wrapped() {
   const isLight = !SLIDE_CONFIG[slide].dark;
 
   return (
-    <View style={{ flex: 1 }}>
+    <ViewShot ref={shotRef} options={{ format: "png", quality: 1.0 }} style={{ flex: 1 }}>
       {/* Backgrounds */}
       {slide === 0 && (
         <LinearGradient
@@ -584,7 +595,7 @@ export default function Wrapped() {
           </View>
         </View>
       </View>
-    </View>
+    </ViewShot>
   );
 }
 

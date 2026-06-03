@@ -10,6 +10,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useAuth } from "@/hooks/useAuth";
 import { configureRevenueCat } from "@/lib/revenuecat";
+import { setupNotificationChannel, requestNotificationPermission } from "@/lib/notifications";
 import { posthog, Events } from "@/lib/posthog";
 import { usePaywall } from "@/hooks/usePaywall";
 
@@ -37,6 +38,8 @@ function AuthGuard() {
   useEffect(() => {
     if (!session) return;
     configureRevenueCat().then(() => checkPro());
+    setupNotificationChannel();
+    requestNotificationPermission();
     posthog.capture(Events.APP_OPEN, { user_id: session.user.id });
     posthog.identify(session.user.id, { email: session.user.email ?? "" });
   // checkPro is stable from zustand; intentionally omitted

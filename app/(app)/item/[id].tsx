@@ -6,6 +6,8 @@ import {
   ScrollView,
   ActivityIndicator,
   Dimensions,
+  Modal,
+  Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -18,6 +20,7 @@ import { TierBadge } from "@/components/ui/TierBadge";
 import { Colors } from "@/constants/theme";
 import { OCCASIONS, getTier, TIERS } from "@/constants/config";
 import { posthog, Events } from "@/lib/posthog";
+import { scheduleTierMilestoneNotification } from "@/lib/notifications";
 import type { WearInsert, ItemWithWears } from "@/lib/database.types";
 import { t } from "@/lib/i18n";
 
@@ -318,6 +321,7 @@ export default function ItemDetail() {
   const [activeTab, setActiveTab] = useState<Tab>("ticker");
   const [showOccasionPicker, setShowOccasionPicker] = useState(false);
   const [logging, setLogging] = useState(false);
+  const [woreItCard, setWoreItCard] = useState<{ newCpw: number; wears: number } | null>(null);
 
   if (!item) {
     return (
@@ -337,8 +341,16 @@ export default function ItemDetail() {
       worn_at: new Date().toISOString().split("T")[0],
       occasion: occasion ?? null,
     };
+    const prevTier = getTier(item.cpw);
     await logWear(wear);
     posthog.capture(Events.WEAR_LOGGED, { item_id: item.id, occasion: occasion ?? null });
+    const newWears = item.wears.length + 1;
+    const newCpw = item.price / newWears;
+    const newTier = getTier(newCpw);
+    if (newTier !== prevTier) {
+      scheduleTierMilestoneNotification(item.name, newCpw, newWears);
+    }
+    setWoreItCard({ newCpw, wears: newWears });
     setLogging(false);
   };
 
@@ -492,6 +504,45 @@ export default function ItemDetail() {
           )}
         </TouchableOpacity>
       </View>
+
+      {/* "Wore it today" celebration card */}
+      <Modal visible={!!woreItCard} transparent animationType="slide" onRequestClose={() => setWoreItCard(null)}>
+        <Pressable style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" }} onPress={() => setWoreItCard(null)}>
+          <Pressable onPress={() => {}}>
+            <View style={{ backgroundColor: Colors.cream, paddingHorizontal: 24, paddingTop: 28, paddingBottom: 36, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}>
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 2.5, textTransform: "uppercase", textAlign: "center", marginBottom: 16 }}>
+                ✓ LOGGED · {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" }).toUpperCase()}
+              </Text>
+              <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 18, color: Colors.ink, textAlign: "center", marginBottom: 4 }}>
+                {item.name}
+              </Text>
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, textAlign: "center", letterSpacing: 1, marginBottom: 20 }}>
+                {woreItCard?.wears}× worn
+              </Text>
+              <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 64, color: Colors.cpw, textAlign: "center", lineHeight: 72 }}>
+                ${woreItCard?.newCpw.toFixed(2)}
+              </Text>
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, textAlign: "center", letterSpacing: 2, textTransform: "uppercase", marginBottom: 24 }}>
+                COST PER WEAR
+              </Text>
+              <TouchableOpacity
+                onPress={() => { setWoreItCard(null); router.push({ pathname: "/modal/share", params: { id: item.id } }); }}
+                style={{ backgroundColor: Colors.ink, paddingVertical: 15, alignItems: "center", marginBottom: 10 }}
+                activeOpacity={0.85}
+              >
+                <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.cream, letterSpacing: 2, textTransform: "uppercase" }}>
+                  Share the receipt →
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setWoreItCard(null)} style={{ paddingVertical: 10, alignItems: "center" }}>
+                <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>
+                  Done
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }

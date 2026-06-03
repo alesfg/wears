@@ -3,9 +3,12 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
+  Share,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import { Feather } from "@expo/vector-icons";
 import { useUserStore } from "@/store/userStore";
 import { useItemStore } from "@/store/itemStore";
@@ -15,6 +18,7 @@ import { Colors } from "@/constants/theme";
 import { FREE_TIER_ITEM_LIMIT } from "@/constants/config";
 import { t } from "@/lib/i18n";
 import { posthog, Events } from "@/lib/posthog";
+import { getOrCreateReferralCode, getReferralStats } from "@/lib/referral";
 
 const SECTION_BG = "#FFFFFF";
 
@@ -257,6 +261,15 @@ export default function Me() {
   const { signOut: _signOut } = useAuth();
   const signOut = () => { posthog.capture(Events.SIGN_OUT); _signOut(); };
 
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [referralUses, setReferralUses] = useState(0);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    getOrCreateReferralCode(user.id).then(setReferralCode);
+    getReferralStats(user.id).then((s) => { if (s) setReferralUses(s.uses); });
+  }, [user?.id]);
+
   const displayName = user?.user_metadata?.display_name ?? user?.email?.split("@")[0] ?? "You";
   const username    = user?.email?.split("@")[0]?.toLowerCase() ?? "you";
   const initial     = displayName[0]?.toUpperCase() ?? "W";
@@ -391,6 +404,37 @@ export default function Me() {
             last
           />
         </View>
+
+        {/* INVITE */}
+        {referralCode && (
+          <>
+            <SectionLabel title="INVITE A FRIEND" />
+            <View style={{ marginHorizontal: 20, borderWidth: 1, borderColor: Colors.border, backgroundColor: SECTION_BG, padding: 16 }}>
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 12, color: Colors.ink, marginBottom: 4 }}>
+                Invite a friend — both get +2 free slots.
+              </Text>
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, marginBottom: 14 }}>
+                {referralUses} friend{referralUses !== 1 ? "s" : ""} joined so far.
+              </Text>
+              <TouchableOpacity
+                onPress={async () => {
+                  try {
+                    await Share.share({
+                      message: `Track your closet like a portfolio. Download Wears and use my code ${referralCode} — we both get 2 extra slots free. wears.app`,
+                    });
+                  } catch { /* ignore */ }
+                }}
+                style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: Colors.ink, paddingHorizontal: 16, paddingVertical: 12 }}
+                activeOpacity={0.85}
+              >
+                <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 13, color: Colors.cream, letterSpacing: 0.5 }}>
+                  Share code · <Text style={{ color: Colors.cpw }}>{referralCode}</Text>
+                </Text>
+                <Feather name="share" size={14} color={Colors.cream} />
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
 
         {/* ACCOUNT */}
         <SectionLabel title={t("account")} />

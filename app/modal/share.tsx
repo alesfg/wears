@@ -51,36 +51,7 @@ export default function ShareModal() {
     );
   }
 
-  if (!isPro) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: Colors.cream }} edges={["top", "bottom"]}>
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 20, paddingVertical: 16 }}>
-          <TouchableOpacity onPress={() => router.back()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>CLOSE</Text>
-          </TouchableOpacity>
-          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.ink, letterSpacing: 2 }}>SHARE ASSET</Text>
-          <View style={{ width: 44 }} />
-        </View>
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 32 }}>
-          <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 28, color: Colors.ink, textAlign: "center", marginBottom: 12 }}>
-            Pro feature
-          </Text>
-          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 14, color: Colors.muted, textAlign: "center", lineHeight: 22, marginBottom: 28 }}>
-            Share your earnings report as a receipt, polaroid, or wallet card. Upgrade to unlock.
-          </Text>
-          <TouchableOpacity
-            onPress={() => { router.back(); router.push("/modal/paywall" as never); }}
-            style={{ backgroundColor: Colors.ink, paddingVertical: 14, paddingHorizontal: 32 }}
-            activeOpacity={0.85}
-          >
-            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 13, color: Colors.cream, letterSpacing: 1.5 }}>
-              UPGRADE →
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  // Receipt is free — only polaroid and wallet require Pro
 
   const capture = async (): Promise<string | null> => {
     if (!shotRef.current) {
@@ -150,51 +121,72 @@ export default function ShareModal() {
 
       {/* Format tabs */}
       <View style={{ flexDirection: "row", borderBottomWidth: 1, borderBottomColor: Colors.border }}>
-        {FORMATS.map((f) => (
-          <TouchableOpacity
-            key={f.key}
-            onPress={() => setFormat(f.key)}
-            style={{
-              flex: 1,
-              paddingVertical: 12,
-              alignItems: "center",
-              borderBottomWidth: 2,
-              borderBottomColor: format === f.key ? Colors.ink : "transparent",
-            }}
-            activeOpacity={0.7}
-          >
-            <Text
+        {FORMATS.map((f) => {
+          const locked = !isPro && f.key !== "receipt";
+          return (
+            <TouchableOpacity
+              key={f.key}
+              onPress={() => setFormat(f.key)}
               style={{
-                fontFamily: "DMSans_400Regular",
-                fontSize: 9,
-                color: format === f.key ? Colors.ink : Colors.muted,
-                letterSpacing: 1.5,
+                flex: 1,
+                paddingVertical: 12,
+                alignItems: "center",
+                borderBottomWidth: 2,
+                borderBottomColor: format === f.key ? Colors.ink : "transparent",
               }}
+              activeOpacity={0.7}
             >
-              {f.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
+              <Text
+                style={{
+                  fontFamily: "DMSans_400Regular",
+                  fontSize: 9,
+                  color: format === f.key ? Colors.ink : Colors.muted,
+                  letterSpacing: 1.5,
+                }}
+              >
+                {locked ? `🔒 ${f.label}` : f.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
-      {/* Preview */}
-      <ScrollView
-        contentContainerStyle={{
-          flexGrow: 1,
-          alignItems: "center",
-          justifyContent: "center",
-          padding: 24,
-        }}
-      >
-        <ViewShot ref={shotRef} options={{ format: "png", quality: 1.0 }}>
-          {format === "receipt" && <ReceiptShare item={item} username={username} />}
-          {format === "polaroid" && <PolaroidShare item={item} username={username} />}
-          {format === "wallet" && <WalletPassShare item={item} username={username} />}
-        </ViewShot>
-      </ScrollView>
+      {/* Pro upsell for locked formats */}
+      {!isPro && format !== "receipt" && (
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 32 }}>
+          <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 24, color: Colors.ink, textAlign: "center", marginBottom: 10 }}>
+            {format === "polaroid" ? "Polaroid" : "Wallet card"} is Pro
+          </Text>
+          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 13, color: Colors.muted, textAlign: "center", lineHeight: 20, marginBottom: 24 }}>
+            Upgrade to unlock all export formats.
+          </Text>
+          <TouchableOpacity
+            onPress={() => { router.back(); router.push("/modal/paywall" as never); }}
+            style={{ backgroundColor: Colors.ink, paddingVertical: 13, paddingHorizontal: 28 }}
+            activeOpacity={0.85}
+          >
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 12, color: Colors.cream, letterSpacing: 1.5 }}>
+              UPGRADE →
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
-      {/* Actions */}
-      <View
+      {/* Preview */}
+      {(isPro || format === "receipt") && (
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, alignItems: "center", justifyContent: "center", padding: 24 }}
+        >
+          <ViewShot ref={shotRef} options={{ format: "png", quality: 1.0 }}>
+            {format === "receipt" && <ReceiptShare item={item} username={username} />}
+            {format === "polaroid" && <PolaroidShare item={item} username={username} />}
+            {format === "wallet" && <WalletPassShare item={item} username={username} />}
+          </ViewShot>
+        </ScrollView>
+      )}
+
+      {/* Actions — hidden when showing Pro upsell */}
+      {(isPro || format === "receipt") && <View
         style={{
           paddingHorizontal: 20,
           paddingBottom: 20,
@@ -233,7 +225,7 @@ export default function ShareModal() {
             Share...
           </Text>
         </TouchableOpacity>
-      </View>
+      </View>}
     </SafeAreaView>
   );
 }

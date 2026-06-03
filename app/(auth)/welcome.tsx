@@ -174,18 +174,10 @@ export default function Welcome() {
 
       {/* CTA area */}
       <View style={{ paddingHorizontal: 20, gap: 12 }}>
-        {/* Continue with Apple */}
-        {Platform.OS === "ios" ? (
+        {/* Continue with Apple — iOS only */}
+        {Platform.OS === "ios" && (
           appleLoading ? (
-            <View
-              style={{
-                height: 56,
-                backgroundColor: Colors.ink,
-                borderRadius: 100,
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
+            <View style={{ height: 56, backgroundColor: Colors.ink, borderRadius: 100, justifyContent: "center", alignItems: "center" }}>
               <ActivityIndicator color="#FFFFFF" />
             </View>
           ) : (
@@ -197,24 +189,6 @@ export default function Welcome() {
               onPress={handleApple}
             />
           )
-        ) : (
-          <TouchableOpacity
-            onPress={handleApple}
-            style={{
-              height: 56,
-              backgroundColor: Colors.ink,
-              borderRadius: 100,
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 10,
-            }}
-            activeOpacity={0.85}
-          >
-            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 17, color: "#FFFFFF" }}>
-              {t("continueApple")}
-            </Text>
-          </TouchableOpacity>
         )}
 
         {/* Continue with email */}
