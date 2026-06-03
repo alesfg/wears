@@ -132,9 +132,11 @@ function ProgressTab({ item }: { item: ItemWithWears }) {
           const achieved = i <= tierIdx;
           const current = i === tierIdx;
           const lineAchieved = i < tierIdx;
+          const isLast = i === TIERS.length - 1;
           return (
-            <View key={tier.name}>
-              <View style={{ flexDirection: "row", alignItems: "center", paddingVertical: 10 }}>
+            <View key={tier.name} style={{ flexDirection: "row" }}>
+              {/* Left column: dot + connector line as one continuous track */}
+              <View style={{ alignItems: "center", width: 22, marginRight: 14 }}>
                 <View
                   style={{
                     width: 22,
@@ -145,44 +147,47 @@ function ProgressTab({ item }: { item: ItemWithWears }) {
                     backgroundColor: achieved ? Colors.cpw : "transparent",
                     alignItems: "center",
                     justifyContent: "center",
-                    marginRight: 14,
                   }}
                 >
                   {achieved && (
                     <Text style={{ color: Colors.cream, fontSize: 11, lineHeight: 14 }}>✓</Text>
                   )}
                 </View>
-                <Text
-                  style={{
-                    fontFamily: achieved ? "InstrumentSerif_400Regular_Italic" : "DMSans_400Regular",
-                    fontSize: achieved ? 14 : 11,
-                    color: achieved ? Colors.ink : Colors.muted,
-                    letterSpacing: 0.5,
-                    flex: 1,
-                  }}
-                >
-                  {tier.name}
-                </Text>
-                <Text
-                  style={{
-                    fontFamily: "DMSans_400Regular",
-                    fontSize: 10,
-                    color: current ? Colors.cpw : achieved ? Colors.ink : Colors.muted,
-                  }}
-                >
-                  {tier.maxCpw === Infinity ? "> $80/wear" : `≤ $${tier.maxCpw}/wear`}
-                </Text>
+                {!isLast && (
+                  <View
+                    style={{
+                      width: 2,
+                      flexGrow: 1,
+                      minHeight: 20,
+                      backgroundColor: lineAchieved ? Colors.cpw : Colors.border,
+                    }}
+                  />
+                )}
               </View>
-              {i < TIERS.length - 1 && (
-                <View
-                  style={{
-                    width: 2,
-                    height: 18,
-                    backgroundColor: lineAchieved ? Colors.cpw : Colors.border,
-                    marginLeft: 10,
-                  }}
-                />
-              )}
+              {/* Right column: paddingTop centers text within the 22px dot */}
+              <View style={{ flex: 1, paddingTop: 3, paddingBottom: 20 }}>
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                  <Text
+                    style={{
+                      fontFamily: achieved ? "InstrumentSerif_400Regular_Italic" : "DMSans_400Regular",
+                      fontSize: achieved ? 14 : 11,
+                      color: achieved ? Colors.ink : Colors.muted,
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    {tier.name}
+                  </Text>
+                  <Text
+                    style={{
+                      fontFamily: "DMSans_400Regular",
+                      fontSize: 10,
+                      color: current ? Colors.cpw : achieved ? Colors.ink : Colors.muted,
+                    }}
+                  >
+                    {tier.maxCpw === Infinity ? "> $80/wear" : `≤ $${tier.maxCpw}/wear`}
+                  </Text>
+                </View>
+              </View>
             </View>
           );
         })}

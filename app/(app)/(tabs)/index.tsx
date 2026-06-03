@@ -36,7 +36,7 @@ function StatRow({ label, value, highlight }: { label: string; value: string; hi
       <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase" }}>
         {label}
       </Text>
-      <Text style={{ fontFamily: highlight ? "InstrumentSerif_400Regular_Italic" : "DMSans_400Regular", fontSize: highlight ? 26 : 12, color: highlight ? Colors.cpw : Colors.ink }}>
+      <Text style={{ fontFamily: highlight ? "InstrumentSerif_400Regular_Italic" : "DMSans_400Regular", fontSize: highlight ? 26 : 12, lineHeight: highlight ? 34 : 18, color: highlight ? Colors.cpw : Colors.ink }}>
         {value}
       </Text>
     </View>
@@ -340,7 +340,7 @@ export default function ClosetLedger() {
                   <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 16, color: Colors.ink, flex: 1 }} numberOfLines={1}>
                     {item.name}
                   </Text>
-                  <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 15, color: Colors.cpw }}>
+                  <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 15, lineHeight: 22, color: Colors.cpw }}>
                     ${item.cpw.toFixed(2)}<Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted }}> /wear</Text>
                   </Text>
                 </View>

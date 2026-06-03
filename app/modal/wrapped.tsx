@@ -8,7 +8,7 @@ import {
   Share,
   Platform,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useRef, useEffect, useCallback, useMemo, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
@@ -231,7 +231,7 @@ function Slide2({ totalWears, busiestMonth, quietestMonth }: {
       <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: "rgba(245,242,235,0.55)", letterSpacing: 3, textTransform: "uppercase", marginTop: 20, marginBottom: 8 }}>
         THIS YEAR YOU WORE
       </Text>
-      <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 110, color: "#F5F2EB", lineHeight: 112, letterSpacing: -2 }}>
+      <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 110, color: "#F5F2EB", lineHeight: 128, letterSpacing: -2 }}>
         {totalWears}
       </Text>
       <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 44, color: "#F5F2EB", marginTop: -4, marginBottom: 28 }}>
@@ -414,6 +414,7 @@ export default function Wrapped() {
   const router = useRouter();
   const items = useItemStore((s) => s.items);
   const { user } = useUserStore();
+  const insets = useSafeAreaInsets();
 
   const displayName = useMemo(() => {
     const raw = user?.user_metadata?.display_name ?? user?.email?.split("@")[0] ?? "You";
@@ -519,7 +520,7 @@ export default function Wrapped() {
       {slide === 3 && <View style={[styleAbsoluteFill, { backgroundColor: "#160E08" }]} />}
       {slide === 4 && <View style={[styleAbsoluteFill, { backgroundColor: Colors.cream }]} />}
 
-      <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
+      <View style={{ flex: 1, paddingTop: insets.top, paddingBottom: insets.bottom }}>
         {/* Progress bar */}
         <StoryBar totalSlides={TOTAL_SLIDES} currentSlide={slide} progress={progress} light={isLight} />
 
@@ -571,7 +572,7 @@ export default function Wrapped() {
             )}
           </View>
         </View>
-      </SafeAreaView>
+      </View>
     </View>
   );
 }
