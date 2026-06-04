@@ -16,7 +16,7 @@ import { Colors } from "@/constants/theme";
 import { t } from "@/lib/i18n";
 
 const PRIVACY_URL = "https://www.floresstudio.app/wears/privacy";
-const TERMS_URL   = "https://www.floresstudio.app/wears/privacy";
+const TERMS_URL   = "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/";
 
 // ─── Receipt demo card ────────────────────────────────────────────────────────
 function DashSep() {
