@@ -30,6 +30,10 @@
         "appleId": "fernandososxd4@gmail.com",
         "ascAppId": "6775865374",
         "appleTeamId": "ZQL5RY53US"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./assets/refs/quickspend-498023-740f92277705.json",
+        "track": "internal"
       }
     }
   }
