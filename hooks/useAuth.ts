@@ -50,8 +50,6 @@ export function useAuth() {
       const { error } = await supabase.auth.signInWithIdToken({
         provider: "apple",
         token: credential.identityToken,
-        // Apple only sends name on first sign-in; pass it so Supabase stores it
-        nonce: credential.authorizationCode ?? undefined,
       });
       return error?.message ?? null;
     } catch (e: unknown) {
@@ -61,5 +59,21 @@ export function useAuth() {
     }
   };
 
-  return { session, user, isLoading, signOut, signInAsGuest, signInWithApple };
+  const deleteAccount = async (): Promise<string | null> => {
+    const { error } = await supabase.functions.invoke("delete-account");
+    if (error) {
+      // Extract actual error body from the function response
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const body = await (error as any).context?.json?.();
+        if (body?.error) return body.error;
+      } catch { /* ignore parse errors */ }
+      return error.message;
+    }
+    await supabase.auth.signOut();
+    reset();
+    return null;
+  };
+
+  return { session, user, isLoading, signOut, signInAsGuest, signInWithApple, deleteAccount };
 }

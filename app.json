@@ -36,7 +36,10 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.floresstudios.wears",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSPhotoLibraryUsageDescription": "Wears accesses your photo library so you can add photos of your clothing items to your closet ledger. For example, choose an existing photo of a pair of shoes or a coat to attach it to that item.",
+        "NSPhotoLibraryAddUsageDescription": "Wears saves your shareable cost-per-wear receipts and style cards to your photo library so you can post them to social media or send them to friends.",
+        "NSCameraUsageDescription": "Wears uses your camera to take photos of clothing items you add to your closet. For example, snap a photo of a new jacket or dress to log it as an asset in your ledger."
       }
     },
     "android": {

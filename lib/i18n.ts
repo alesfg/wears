@@ -176,6 +176,11 @@ const en = {
   portfolioAnalytics: "Portfolio analytics",
   account: "ACCOUNT",
   signOut: "Sign out",
+  deleteAccount: "Delete account",
+  deleteAccountTitle: "Delete Account",
+  deleteAccountMsg: "This will permanently delete your account and all your closet data. This action cannot be undone.",
+  deleteAccountConfirm: "Delete",
+  deleteAccountCancel: "Cancel",
   footerVersion: "WEARS · V1.0.0 · COST BASIS: JUSTIFIED",
 } as const;
 
@@ -341,6 +346,11 @@ const es: typeof en = {
   portfolioAnalytics: "Análisis de portfolio",
   account: "CUENTA",
   signOut: "Cerrar sesión",
+  deleteAccount: "Eliminar cuenta",
+  deleteAccountTitle: "Eliminar cuenta",
+  deleteAccountMsg: "Esto eliminará permanentemente tu cuenta y todos los datos de tu closet. Esta acción no se puede deshacer.",
+  deleteAccountConfirm: "Eliminar",
+  deleteAccountCancel: "Cancelar",
   footerVersion: "WEARS · V1.0.0 · BASE DE COSTO: JUSTIFICADA",
 };
 

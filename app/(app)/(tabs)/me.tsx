@@ -258,8 +258,28 @@ export default function Me() {
   const { user } = useUserStore();
   const { items } = useItemStore();
   const { isPro } = usePaywall();
-  const { signOut: _signOut } = useAuth();
+  const { signOut: _signOut, deleteAccount: _deleteAccount } = useAuth();
   const signOut = () => { posthog.capture(Events.SIGN_OUT); _signOut(); };
+  const [deleting, setDeleting] = useState(false);
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      t("deleteAccountTitle"),
+      t("deleteAccountMsg"),
+      [
+        { text: t("deleteAccountCancel"), style: "cancel" },
+        {
+          text: t("deleteAccountConfirm"),
+          style: "destructive",
+          onPress: async () => {
+            setDeleting(true);
+            const err = await _deleteAccount();
+            setDeleting(false);
+            if (err) Alert.alert("Error", err);
+          },
+        },
+      ]
+    );
+  };
 
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const [referralUses, setReferralUses] = useState(0);
@@ -457,6 +477,28 @@ export default function Me() {
               }}
             >
               {t("signOut")}
+            </Text>
+          </TouchableOpacity>
+          <View style={{ height: 1, backgroundColor: Colors.border, marginLeft: 16 }} />
+          <TouchableOpacity
+            onPress={handleDeleteAccount}
+            disabled={deleting}
+            style={{
+              paddingHorizontal: 16,
+              paddingVertical: 16,
+              minHeight: 52,
+              justifyContent: "center",
+            }}
+            activeOpacity={0.7}
+          >
+            <Text
+              style={{
+                fontFamily: "DMSans_400Regular",
+                fontSize: 15,
+                color: deleting ? Colors.muted : "#C0392B",
+              }}
+            >
+              {deleting ? "Deleting…" : t("deleteAccount")}
             </Text>
           </TouchableOpacity>
         </View>
