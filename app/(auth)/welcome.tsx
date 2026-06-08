@@ -4,6 +4,7 @@ import {
   TouchableOpacity,
   Platform,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -115,8 +116,10 @@ export default function Welcome() {
 
   const handleApple = async () => {
     setAppleLoading(true);
-    await signInWithApple();
+    const err = await signInWithApple();
     setAppleLoading(false);
+    if (err) Alert.alert("Error", err);
+    // session change → AuthGuard redirects to /(app)
   };
 
   return (

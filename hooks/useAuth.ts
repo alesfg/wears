@@ -4,6 +4,22 @@ import * as AppleAuthentication from "expo-apple-authentication";
 import { supabase } from "@/lib/supabase";
 import { useUserStore } from "@/store/userStore";
 import { useItemStore } from "@/store/itemStore";
+import { t } from "@/lib/i18n";
+
+// Apple's review devices have hung mid-flow with the loading spinner stuck —
+// race the native call against a timeout so the UI always recovers and the
+// user gets an actionable error instead of a frozen screen.
+const APPLE_SIGNIN_TIMEOUT_MS = 20000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(message)), ms);
+    promise.then(
+      (value) => { clearTimeout(timer); resolve(value); },
+      (err) => { clearTimeout(timer); reject(err); }
+    );
+  });
+}
 
 export function useAuth() {
   const { session, user, isLoading, setSession, setLoading, reset } = useUserStore();
@@ -39,18 +55,26 @@ export function useAuth() {
   const signInWithApple = async (): Promise<string | null> => {
     if (Platform.OS !== "ios") return "Apple Sign In is only available on iOS";
     try {
-      const credential = await AppleAuthentication.signInAsync({
-        requestedScopes: [
-          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-          AppleAuthentication.AppleAuthenticationScope.EMAIL,
-        ],
-      });
+      const credential = await withTimeout(
+        AppleAuthentication.signInAsync({
+          requestedScopes: [
+            AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+            AppleAuthentication.AppleAuthenticationScope.EMAIL,
+          ],
+        }),
+        APPLE_SIGNIN_TIMEOUT_MS,
+        t("appleSignInTimeout")
+      );
       if (!credential.identityToken) return "No identity token from Apple";
 
-      const { error } = await supabase.auth.signInWithIdToken({
-        provider: "apple",
-        token: credential.identityToken,
-      });
+      const { error } = await withTimeout(
+        supabase.auth.signInWithIdToken({
+          provider: "apple",
+          token: credential.identityToken,
+        }),
+        APPLE_SIGNIN_TIMEOUT_MS,
+        t("appleSignInTimeout")
+      );
       return error?.message ?? null;
     } catch (e: unknown) {
       // ERR_CANCELED means user tapped Cancel — not a real error
