@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Platform } from "react-native";
 import * as AppleAuthentication from "expo-apple-authentication";
+import * as Crypto from "expo-crypto";
 import { supabase } from "@/lib/supabase";
 import { useUserStore } from "@/store/userStore";
 import { useItemStore } from "@/store/itemStore";
@@ -55,12 +56,24 @@ export function useAuth() {
   const signInWithApple = async (): Promise<string | null> => {
     if (Platform.OS !== "ios") return "Apple Sign In is only available on iOS";
     try {
+      // Raw nonce sent to Supabase; SHA-256 digest sent to Apple so neither side
+      // gets the other's value — prevents replay attacks, required by Apple guidelines.
+      const rawNonce = Crypto.getRandomBytes(32).reduce(
+        (acc, byte) => acc + byte.toString(16).padStart(2, "0"),
+        ""
+      );
+      const hashedNonce = await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        rawNonce
+      );
+
       const credential = await withTimeout(
         AppleAuthentication.signInAsync({
           requestedScopes: [
             AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
             AppleAuthentication.AppleAuthenticationScope.EMAIL,
           ],
+          nonce: hashedNonce,
         }),
         APPLE_SIGNIN_TIMEOUT_MS,
         t("appleSignInTimeout")
@@ -71,6 +84,7 @@ export function useAuth() {
         supabase.auth.signInWithIdToken({
           provider: "apple",
           token: credential.identityToken,
+          nonce: rawNonce,
         }),
         APPLE_SIGNIN_TIMEOUT_MS,
         t("appleSignInTimeout")
