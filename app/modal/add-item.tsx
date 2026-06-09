@@ -96,11 +96,8 @@ export default function AddItem() {
           });
 
         removeBackground(asset.base64)
-          .then((clean) => {
-            if (clean) { setCleanImageUri(clean); }
-            else { setServiceWarning("Background removal unavailable — using original photo"); }
-          })
-          .catch(() => { setServiceWarning("Background removal unavailable — using original photo"); })
+          .then((clean) => { if (clean) setCleanImageUri(clean); })
+          .catch(() => {})
           .finally(() => setRemovingBg(false));
       }
     }
