@@ -5,6 +5,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Linking,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -12,11 +13,15 @@ import { useState, useEffect } from "react";
 import { usePaywall } from "@/hooks/usePaywall";
 import { Colors } from "@/constants/theme";
 import { posthog, Events } from "@/lib/posthog";
+import { t } from "@/lib/i18n";
 
 const BG = "#1A1208";
 const CARD_BG = "rgba(255,255,255,0.05)";
 const MUTED = "rgba(255,255,255,0.35)";
 const CREAM = "#F5F2EB";
+
+const TERMS_URL = "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/";
+const PRIVACY_URL = "https://www.floresstudio.app/wears/privacy";
 
 const FEATURES: Array<{ label: string; note: string }> = [
   { label: "Unlimited pieces",    note: "no 5-item cap" },
@@ -390,6 +395,37 @@ export default function Paywall() {
               </Text>
             )}
           </TouchableOpacity>
+
+          {/* Subscription terms — required by App Store guideline 3.1.2 */}
+          <Text
+            style={{
+              fontFamily: "DMSans_400Regular",
+              fontSize: 9,
+              color: "rgba(255,255,255,0.2)",
+              letterSpacing: 0.5,
+              textAlign: "center",
+              lineHeight: 15,
+              marginTop: 10,
+              paddingHorizontal: 12,
+            }}
+          >
+            Wears Premium auto-renews {selectedPlan === "yearly" ? "yearly at $24.99/yr" : "monthly at $3.99/mo"} after the
+            7-day free trial unless cancelled at least 24 hours before the
+            period ends.
+          </Text>
+          <View style={{ flexDirection: "row", justifyContent: "center", gap: 6, marginTop: 6, paddingBottom: 4 }}>
+            <TouchableOpacity onPress={() => Linking.openURL(TERMS_URL)}>
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: "rgba(255,255,255,0.35)", letterSpacing: 1, textDecorationLine: "underline" }}>
+                {t("terms")}
+              </Text>
+            </TouchableOpacity>
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: "rgba(255,255,255,0.2)", letterSpacing: 1 }}>·</Text>
+            <TouchableOpacity onPress={() => Linking.openURL(PRIVACY_URL)}>
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: "rgba(255,255,255,0.35)", letterSpacing: 1, textDecorationLine: "underline" }}>
+                {t("privacy")}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </ScrollView>
       </SafeAreaView>
     </View>

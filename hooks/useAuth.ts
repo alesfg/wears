@@ -89,7 +89,17 @@ export function useAuth() {
         APPLE_SIGNIN_TIMEOUT_MS,
         t("appleSignInTimeout")
       );
-      return error?.message ?? null;
+      if (error) return error.message;
+
+      // Apple only returns the user's name on the very first sign-in —
+      // capture it now so the app never has to ask for it again.
+      const { givenName, familyName } = credential.fullName ?? {};
+      if (givenName) {
+        const displayName = [givenName, familyName].filter(Boolean).join(" ");
+        await supabase.auth.updateUser({ data: { display_name: displayName } });
+      }
+
+      return null;
     } catch (e: unknown) {
       // ERR_CANCELED means user tapped Cancel — not a real error
       if ((e as { code?: string }).code === "ERR_CANCELED") return null;

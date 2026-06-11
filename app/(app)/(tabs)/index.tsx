@@ -124,9 +124,11 @@ export default function ClosetLedger() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
-  // Show name prompt once if display_name is not set
+  // Show name prompt once if display_name is not set — but never for Apple
+  // Sign In users, since Apple already provides their name (HIG requirement)
   useEffect(() => {
-    if (user && !user.user_metadata?.display_name) {
+    const isAppleUser = user?.app_metadata?.provider === "apple";
+    if (user && !isAppleUser && !user.user_metadata?.display_name) {
       const timer = setTimeout(() => setShowNamePrompt(true), 800);
       return () => clearTimeout(timer);
     }
