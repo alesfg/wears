@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import {
   View,
   Text,
+  Image,
   ScrollView,
   TouchableOpacity,
   useWindowDimensions,
@@ -49,6 +50,14 @@ const HMAP_COLORS = ["#F0D8D0", "#D4957A", "#B85A3A", "#8B3520"];
 
 function itemSwatch(item: ItemWithWears): string {
   return CATEGORY_COLORS[item.category ?? ""] ?? Colors.muted;
+}
+
+// Renders the item's photo if it has one, otherwise a category-color swatch.
+function ItemSwatch({ item, style }: { item: ItemWithWears; style: { width?: number | `${number}%`; height?: number | `${number}%`; flex?: number } }) {
+  if (item.image_url) {
+    return <Image source={{ uri: item.image_url }} style={style} resizeMode="cover" />;
+  }
+  return <View style={{ ...style, backgroundColor: itemSwatch(item) }} />;
 }
 
 function toDs(y: number, m: number, d: number): string {
@@ -158,7 +167,7 @@ function CalCell({
             }}
           >
             {swatches.map((item) => (
-              <View key={item.id} style={{ flex: 1, backgroundColor: itemSwatch(item) }} />
+              <ItemSwatch key={item.id} item={item} style={{ flex: 1, height: "100%" }} />
             ))}
           </View>
         )}
@@ -264,10 +273,7 @@ function OutfitCard({ ds, items }: { ds: string; items: ItemWithWears[] }) {
         >
           <View style={{ flexDirection: "row", gap: 4 }}>
             {items.slice(0, 3).map((item) => (
-              <View
-                key={item.id}
-                style={{ width: 44, height: 52, backgroundColor: itemSwatch(item) }}
-              />
+              <ItemSwatch key={item.id} item={item} style={{ width: 44, height: 52 }} />
             ))}
           </View>
 
@@ -378,7 +384,8 @@ function MonthView({ wbd }: { wbd: Record<string, ItemWithWears[]> }) {
                 fontFamily: "InstrumentSerif_400Regular_Italic",
                 fontSize: 52,
                 color: Colors.ink,
-                lineHeight: 56,
+                lineHeight: 64,
+                paddingTop: 6,
               }}
             >
               {MONTH_NAMES[month]}
@@ -662,7 +669,8 @@ function HeatmapView({ wbd }: { wbd: Record<string, ItemWithWears[]> }) {
               fontFamily: "InstrumentSerif_400Regular_Italic",
               fontSize: 80,
               color: Colors.ink,
-              lineHeight: 80,
+              lineHeight: 92,
+              paddingTop: 8,
             }}
           >
             {totalDays}
@@ -857,7 +865,7 @@ function ListView({ wbd }: { wbd: Record<string, ItemWithWears[]> }) {
                 </View>
                 <View style={{ flexDirection: "row", gap: 3 }}>
                   {items.slice(0, 4).map((item) => (
-                    <View key={item.id} style={{ width: 18, height: 22, backgroundColor: itemSwatch(item) }} />
+                    <ItemSwatch key={item.id} item={item} style={{ width: 18, height: 22 }} />
                   ))}
                 </View>
               </View>

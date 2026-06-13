@@ -29,4 +29,5 @@ export const Events = {
   WATCHLIST_VIEWED:  "watchlist_item_viewed",
   WATCHLIST_ADDED:   "watchlist_item_added",
   WATCHLIST_REMOVED: "watchlist_item_removed",
+  DAILY_REMINDER_TOGGLED: "daily_reminder_toggled",
 } as const;

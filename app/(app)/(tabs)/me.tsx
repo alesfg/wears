@@ -5,10 +5,12 @@ import {
   TouchableOpacity,
   Share,
   Alert,
+  Switch,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Feather } from "@expo/vector-icons";
 import { useUserStore } from "@/store/userStore";
 import { useItemStore } from "@/store/itemStore";
@@ -19,6 +21,9 @@ import { FREE_TIER_ITEM_LIMIT } from "@/constants/config";
 import { t } from "@/lib/i18n";
 import { posthog, Events } from "@/lib/posthog";
 import { getOrCreateReferralCode, getReferralStats } from "@/lib/referral";
+import { scheduleDailyReminder, cancelDailyReminder, DAILY_REMINDER_HOUR } from "@/lib/notifications";
+
+const DAILY_REMINDER_KEY = "@wears/daily_reminder_enabled";
 
 const SECTION_BG = "#FFFFFF";
 
@@ -72,6 +77,43 @@ function SettingRow({
           <Feather name="chevron-right" size={13} color={Colors.muted} />
         </View>
       </TouchableOpacity>
+      {!last && <View style={{ height: 1, backgroundColor: Colors.border, marginLeft: 16 }} />}
+    </>
+  );
+}
+
+function SwitchRow({
+  label, sublabel, value, onValueChange, last,
+}: {
+  label: string; sublabel: string; value: boolean; onValueChange: (v: boolean) => void; last?: boolean;
+}) {
+  return (
+    <>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          paddingHorizontal: 16,
+          paddingVertical: 14,
+          minHeight: 52,
+          backgroundColor: SECTION_BG,
+        }}
+      >
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 15, color: Colors.ink }}>
+            {label}
+          </Text>
+          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.muted, marginTop: 2 }}>
+            {sublabel}
+          </Text>
+        </View>
+        <Switch
+          value={value}
+          onValueChange={onValueChange}
+          trackColor={{ false: Colors.border, true: Colors.cpw }}
+          thumbColor="#FFFFFF"
+        />
+      </View>
       {!last && <View style={{ height: 1, backgroundColor: Colors.border, marginLeft: 16 }} />}
     </>
   );
@@ -290,6 +332,27 @@ export default function Me() {
     getReferralStats(user.id).then((s) => { if (s) setReferralUses(s.uses); });
   }, [user?.id]);
 
+  const [dailyReminder, setDailyReminder] = useState(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem(DAILY_REMINDER_KEY).then((v) => setDailyReminder(v === "true"));
+  }, []);
+
+  const toggleDailyReminder = async (value: boolean) => {
+    if (value) {
+      const granted = await scheduleDailyReminder();
+      if (!granted) {
+        Alert.alert(t("dailyReminder"), t("notifPermissionDenied"));
+        return;
+      }
+    } else {
+      await cancelDailyReminder();
+    }
+    posthog.capture(Events.DAILY_REMINDER_TOGGLED, { enabled: value });
+    await AsyncStorage.setItem(DAILY_REMINDER_KEY, value ? "true" : "false");
+    setDailyReminder(value);
+  };
+
   const displayName = user?.user_metadata?.display_name ?? user?.email?.split("@")[0] ?? "You";
   const username    = user?.email?.split("@")[0]?.toLowerCase() ?? "you";
   const initial     = displayName[0]?.toUpperCase() ?? "W";
@@ -408,6 +471,18 @@ export default function Me() {
             <UsageBar count={items.length} limit={FREE_TIER_ITEM_LIMIT} />
           </>
         )}
+
+        {/* NOTIFICATIONS */}
+        <SectionLabel title={t("notifications")} />
+        <View style={{ marginHorizontal: 20, borderWidth: 1, borderColor: Colors.border, backgroundColor: SECTION_BG }}>
+          <SwitchRow
+            label={t("dailyReminder")}
+            sublabel={dailyReminder ? t("dailyReminderTime") : t("dailyReminderOff")}
+            value={dailyReminder}
+            onValueChange={toggleDailyReminder}
+            last
+          />
+        </View>
 
         {/* DATA */}
         <SectionLabel title={t("data")} />

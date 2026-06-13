@@ -21,9 +21,10 @@ import { useAnalytics } from "@/hooks/useAnalytics";
 import { DashedLine } from "@/components/ui/DashedLine";
 import { ItemRow } from "@/components/features/ItemRow";
 import { Colors } from "@/constants/theme";
-import { FREE_TIER_ITEM_LIMIT } from "@/constants/config";
+import { FREE_TIER_ITEM_LIMIT, OCCASIONS, getTier } from "@/constants/config";
 import { supabase } from "@/lib/supabase";
-import type { ItemWithWears } from "@/lib/database.types";
+import { scheduleTierMilestoneNotification } from "@/lib/notifications";
+import type { ItemWithWears, WearInsert } from "@/lib/database.types";
 import { t } from "@/lib/i18n";
 
 function formatPeriod() {
@@ -116,13 +117,15 @@ function EmptyState() {
 export default function ClosetLedger() {
   const router = useRouter();
   const { user, setSession } = useUserStore();
-  const { items, isLoading, fetchItems } = useItemStore();
+  const { items, isLoading, fetchItems, logWear } = useItemStore();
   const { isAtFreeLimit, isPro } = usePaywall();
   const { track, Events } = useAnalytics();
   const [showWearPicker, setShowWearPicker] = useState(false);
   const [showNamePrompt, setShowNamePrompt] = useState(false);
   const [nameInput, setNameInput] = useState("");
   const [savingName, setSavingName] = useState(false);
+  const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
+  const [quickLogCard, setQuickLogCard] = useState<{ name: string; newCpw: number; wears: number } | null>(null);
 
   useEffect(() => {
     if (user?.id) fetchItems(user.id);
@@ -171,6 +174,33 @@ export default function ClosetLedger() {
     }
     track(Events.FEATURE_USED, { feature: "add_item" });
     router.push("/modal/add-item");
+  };
+
+  const handleQuickLog = async (item: ItemWithWears, occasion?: string) => {
+    if (!user?.id) return;
+    const wear: WearInsert = {
+      item_id: item.id,
+      user_id: user.id,
+      worn_at: new Date().toISOString().split("T")[0],
+      occasion: occasion ?? null,
+    };
+    const prevTier = getTier(item.cpw);
+    await logWear(wear);
+    track(Events.WEAR_LOGGED, { item_id: item.id, occasion: occasion ?? null, source: "quick_log" });
+    const newWears = item.wears.length + 1;
+    const newCpw = item.price / newWears;
+    const newTier = getTier(newCpw);
+    if (newTier !== prevTier) {
+      scheduleTierMilestoneNotification(item.name, newCpw, newWears);
+    }
+    setExpandedItemId(null);
+    setQuickLogCard({ name: item.name, newCpw, wears: newWears });
+  };
+
+  const closeWearPicker = () => {
+    setShowWearPicker(false);
+    setExpandedItemId(null);
+    setQuickLogCard(null);
   };
 
   if (isLoading && items.length === 0) {
@@ -299,25 +329,46 @@ export default function ClosetLedger() {
         visible={showWearPicker}
         transparent
         animationType="slide"
-        onRequestClose={() => setShowWearPicker(false)}
+        onRequestClose={closeWearPicker}
       >
         <TouchableOpacity
           style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.3)" }}
           activeOpacity={1}
-          onPress={() => setShowWearPicker(false)}
+          onPress={closeWearPicker}
         />
         <View style={{ backgroundColor: Colors.cream, maxHeight: "65%", borderTopWidth: 1, borderTopColor: Colors.border }}>
           {/* Sheet header */}
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, paddingVertical: 14 }}>
             <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 2, textTransform: "uppercase" }}>
-              {t("wearingToday")}
+              {quickLogCard ? "✓ LOGGED" : t("wearingToday")}
             </Text>
-            <TouchableOpacity onPress={() => setShowWearPicker(false)} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+            <TouchableOpacity onPress={closeWearPicker} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
               <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>✕</Text>
             </TouchableOpacity>
           </View>
           <DashedLine />
 
+          {quickLogCard ? (
+            <View style={{ paddingHorizontal: 24, paddingTop: 20, paddingBottom: 36 }}>
+              <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 18, color: Colors.ink, textAlign: "center", marginBottom: 4 }}>
+                {quickLogCard.name}
+              </Text>
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, textAlign: "center", letterSpacing: 1, marginBottom: 20 }}>
+                {quickLogCard.wears}× worn
+              </Text>
+              <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 64, color: Colors.cpw, textAlign: "center", lineHeight: 72 }}>
+                ${quickLogCard.newCpw.toFixed(2)}
+              </Text>
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, textAlign: "center", letterSpacing: 2, textTransform: "uppercase", marginBottom: 24 }}>
+                COST PER WEAR
+              </Text>
+              <TouchableOpacity onPress={closeWearPicker} style={{ paddingVertical: 14, alignItems: "center", backgroundColor: Colors.ink }} activeOpacity={0.85}>
+                <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.cream, letterSpacing: 2, textTransform: "uppercase" }}>
+                  Done
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
           <ScrollView bounces={false}>
             {/* Add new piece row — always first */}
             <TouchableOpacity
@@ -351,28 +402,61 @@ export default function ClosetLedger() {
               </>
             )}
 
-            {sorted.map((item) => (
-              <TouchableOpacity
-                key={item.id}
-                onPress={() => {
-                  setShowWearPicker(false);
-                  track(Events.FEATURE_USED, { feature: "log_wear_from_home", item_id: item.id });
-                  router.push(`/(app)/item/${item.id}`);
-                }}
-                activeOpacity={0.7}
-              >
-                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, paddingVertical: 14 }}>
-                  <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 16, color: Colors.ink, flex: 1 }} numberOfLines={1}>
-                    {item.name}
-                  </Text>
-                  <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 15, lineHeight: 22, color: Colors.cpw }}>
-                    ${item.cpw.toFixed(2)}<Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted }}> /wear</Text>
-                  </Text>
+            {sorted.map((item) => {
+              const expanded = expandedItemId === item.id;
+              return (
+                <View key={item.id}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      track(Events.FEATURE_USED, { feature: "log_wear_from_home", item_id: item.id });
+                      setExpandedItemId(expanded ? null : item.id);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, paddingVertical: 14 }}>
+                      <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 16, color: Colors.ink, flex: 1 }} numberOfLines={1}>
+                        {item.name}
+                      </Text>
+                      <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 15, lineHeight: 22, color: Colors.cpw }}>
+                        ${item.cpw.toFixed(2)}<Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted }}> /wear</Text>
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  {expanded && (
+                    <View style={{ paddingHorizontal: 20, paddingBottom: 14 }}>
+                      <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, marginBottom: 10 }}>
+                        {t("occasionOptional")}
+                      </Text>
+                      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                        <TouchableOpacity
+                          onPress={() => handleQuickLog(item, undefined)}
+                          style={{ paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: Colors.border }}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>{t("skip")}</Text>
+                        </TouchableOpacity>
+                        {OCCASIONS.map((occ) => (
+                          <TouchableOpacity
+                            key={occ}
+                            onPress={() => handleQuickLog(item, occ)}
+                            style={{ paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: Colors.border }}
+                            activeOpacity={0.7}
+                          >
+                            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.ink, letterSpacing: 1 }}>
+                              {occ.toUpperCase()}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </View>
+                  )}
+                  <DashedLine />
                 </View>
-                <DashedLine />
-              </TouchableOpacity>
-            ))}
+              );
+            })}
           </ScrollView>
+          )}
         </View>
       </Modal>
     </SafeAreaView>

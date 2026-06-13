@@ -55,3 +55,32 @@ export async function setupNotificationChannel(): Promise<void> {
     });
   }
 }
+
+const DAILY_REMINDER_ID = "daily-wear-reminder";
+export const DAILY_REMINDER_HOUR = 20;
+export const DAILY_REMINDER_MINUTE = 0;
+
+export async function scheduleDailyReminder(): Promise<boolean> {
+  const granted = await requestNotificationPermission();
+  if (!granted) return false;
+
+  await Notifications.cancelScheduledNotificationAsync(DAILY_REMINDER_ID).catch(() => {});
+  await Notifications.scheduleNotificationAsync({
+    identifier: DAILY_REMINDER_ID,
+    content: {
+      title: "What are you wearing today?",
+      body: "Log it before you forget — every wear drops your cost per wear.",
+      data: {},
+    },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DAILY,
+      hour: DAILY_REMINDER_HOUR,
+      minute: DAILY_REMINDER_MINUTE,
+    },
+  });
+  return true;
+}
+
+export async function cancelDailyReminder(): Promise<void> {
+  await Notifications.cancelScheduledNotificationAsync(DAILY_REMINDER_ID).catch(() => {});
+}
