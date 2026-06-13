@@ -65,35 +65,6 @@ export default function Stats() {
   const now = new Date();
   const period = `${now.toLocaleString("en-US", { month: "short" }).toUpperCase()} ${now.getFullYear()}`;
 
-  if (!isPro) {
-    return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: Colors.cream }} edges={["top"]}>
-        <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 20, paddingVertical: 12 }}>
-          <TouchableOpacity onPress={() => router.back()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 13, color: Colors.muted }}>{"<"}</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 32 }}>
-          <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 28, color: Colors.ink, textAlign: "center", marginBottom: 12 }}>
-            Portfolio analytics
-          </Text>
-          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 14, color: Colors.muted, textAlign: "center", lineHeight: 22, marginBottom: 28 }}>
-            Full stats, tier breakdown, top performers, and underperformers. Upgrade to unlock.
-          </Text>
-          <TouchableOpacity
-            onPress={() => router.push("/modal/paywall" as never)}
-            style={{ backgroundColor: Colors.ink, paddingVertical: 14, paddingHorizontal: 32 }}
-            activeOpacity={0.85}
-          >
-            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 13, color: Colors.cream, letterSpacing: 1.5 }}>
-              UPGRADE →
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.cream }} edges={["top"]}>
       <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
@@ -131,7 +102,25 @@ export default function Stats() {
           <DashedLine marginVertical={0} />
         </View>
 
-        {!stats || items.length === 0 ? (
+        {!isPro ? (
+          <View style={{ paddingTop: 48, paddingHorizontal: 32, alignItems: "center" }}>
+            <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 24, color: Colors.ink, textAlign: "center", marginBottom: 10 }}>
+              Portfolio analytics
+            </Text>
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 13, color: Colors.muted, textAlign: "center", lineHeight: 20, marginBottom: 24 }}>
+              Tier breakdown, top performers, and underperformers. Upgrade to unlock the full report.
+            </Text>
+            <TouchableOpacity
+              onPress={() => router.push("/modal/paywall" as never)}
+              style={{ backgroundColor: Colors.ink, paddingVertical: 14, paddingHorizontal: 32 }}
+              activeOpacity={0.85}
+            >
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 13, color: Colors.cream, letterSpacing: 1.5 }}>
+                UPGRADE →
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : !stats || items.length === 0 ? (
           <View style={{ paddingTop: 60, alignItems: "center" }}>
             <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase" }}>
               NO DATA YET

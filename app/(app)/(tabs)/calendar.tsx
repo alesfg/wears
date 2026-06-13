@@ -378,8 +378,10 @@ function MonthView({ wbd }: { wbd: Record<string, ItemWithWears[]> }) {
       {/* Month header */}
       <View style={{ paddingHorizontal: 20, paddingTop: 12 }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <View>
+          <View style={{ flex: 1, flexShrink: 1, marginRight: 8 }}>
             <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
               style={{
                 fontFamily: "InstrumentSerif_400Regular_Italic",
                 fontSize: 52,
