@@ -266,9 +266,16 @@ function LogTab({ item }: { item: ItemWithWears }) {
       <DashedLine />
 
       {item.wears.length === 0 ? (
-        <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, textAlign: "center", paddingVertical: 24 }}>
-          {t("noWearsYet")}
-        </Text>
+        <View style={{ alignItems: "center", paddingVertical: 24 }}>
+          <Image
+            source={require("@/assets/calendar.png")}
+            style={{ width: 64, height: 64, marginBottom: 8 }}
+            resizeMode="contain"
+          />
+          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, textAlign: "center" }}>
+            {t("noWearsYet")}
+          </Text>
+        </View>
       ) : (
         <>
           {[...wearsAsc].reverse().map((wear, i) => {

@@ -27,4 +27,6 @@ export const Events = {
   WRAPPED_COMPLETED: "wrapped_completed",
   TAB_VIEWED:        "tab_viewed",
   WATCHLIST_VIEWED:  "watchlist_item_viewed",
+  WATCHLIST_ADDED:   "watchlist_item_added",
+  WATCHLIST_REMOVED: "watchlist_item_removed",
 } as const;

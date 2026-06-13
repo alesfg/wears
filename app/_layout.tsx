@@ -67,6 +67,7 @@ export default function RootLayout() {
           <Stack.Screen name="(app)" />
           <Stack.Screen name="(auth)" />
           <Stack.Screen name="modal/add-item" options={{ presentation: "modal" }} />
+          <Stack.Screen name="modal/add-watchlist-item" options={{ presentation: "modal" }} />
           <Stack.Screen name="modal/share" options={{ presentation: "modal" }} />
           <Stack.Screen name="modal/paywall" options={{ presentation: "modal" }} />
           <Stack.Screen name="modal/wrapped" options={{ presentation: "fullScreenModal", animation: "fade" }} />

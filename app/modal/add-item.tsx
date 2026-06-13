@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -57,16 +58,25 @@ export default function AddItem() {
 
   const overlayLabel = !scanningAI && removingBg ? "CLEANING BG..." : "ANALYZING...";
 
-  const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") return;
-    const result = await ImagePicker.launchImageLibraryAsync({
+  const pickImage = async (source: "camera" | "library") => {
+    const pickerOptions: ImagePicker.ImagePickerOptions = {
       mediaTypes: ["images"],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.7,
       base64: true,
-    });
+    };
+
+    let result: ImagePicker.ImagePickerResult;
+    if (source === "camera") {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") return;
+      result = await ImagePicker.launchCameraAsync(pickerOptions);
+    } else {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") return;
+      result = await ImagePicker.launchImageLibraryAsync(pickerOptions);
+    }
     if (!result.canceled && result.assets[0]) {
       const asset = result.assets[0];
       setImageUri(asset.uri);
@@ -101,6 +111,14 @@ export default function AddItem() {
           .finally(() => setRemovingBg(false));
       }
     }
+  };
+
+  const choosePhotoSource = () => {
+    Alert.alert(t("addPhotoTitle"), undefined, [
+      { text: t("takePhoto"), onPress: () => pickImage("camera") },
+      { text: t("chooseFromLibrary"), onPress: () => pickImage("library") },
+      { text: t("cancel"), style: "cancel" },
+    ]);
   };
 
   const uploadImage = async (uri: string, userId: string): Promise<string | null> => {
@@ -209,7 +227,7 @@ export default function AddItem() {
 
           {/* Photo */}
           <TouchableOpacity
-            onPress={pickImage}
+            onPress={choosePhotoSource}
             disabled={processing}
             style={{
               width: "100%",

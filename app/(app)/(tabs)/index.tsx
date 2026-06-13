@@ -9,6 +9,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -78,6 +79,11 @@ function ListHeader({ username, totalCostBasis, totalWears, pieces, blendedCpw }
 function EmptyState() {
   return (
     <View style={{ alignItems: "center", paddingTop: 48, paddingHorizontal: 32 }}>
+      <Image
+        source={require("@/assets/percha.png")}
+        style={{ width: 96, height: 96, marginBottom: 20 }}
+        resizeMode="contain"
+      />
       <View style={{ width: "100%", borderWidth: 1, borderColor: Colors.border, borderStyle: "dashed", padding: 24, alignItems: "center", gap: 12 }}>
         <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 2, textTransform: "uppercase" }}>
           PORTFOLIO SUMMARY

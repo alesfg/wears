@@ -1,9 +1,10 @@
-import { View, Text, FlatList, TouchableOpacity } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { Colors } from "@/constants/theme";
 import { posthog, Events } from "@/lib/posthog";
+import { useUserStore } from "@/store/userStore";
 import {
   useWatchlistStore,
   getProjectedCpw,
@@ -232,9 +233,14 @@ function ListHeader({
   );
 }
 
-function EmptyState() {
+function EmptyState({ onAdd }: { onAdd: () => void }) {
   return (
-    <View style={{ alignItems: "center", paddingTop: 64, paddingHorizontal: 32 }}>
+    <View style={{ alignItems: "center", paddingTop: 48, paddingHorizontal: 32 }}>
+      <Image
+        source={require("@/assets/tagsearch.png")}
+        style={{ width: 96, height: 96, marginBottom: 20 }}
+        resizeMode="contain"
+      />
       <Text
         style={{
           fontFamily: "DMSans_400Regular",
@@ -265,17 +271,47 @@ function EmptyState() {
           color: Colors.muted,
           textAlign: "center",
           lineHeight: 18,
+          marginBottom: 24,
         }}
       >
         Add pieces you're considering to calculate their projected CPW before you buy.
       </Text>
+      <TouchableOpacity
+        onPress={onAdd}
+        style={{
+          borderWidth: 1.5,
+          borderColor: Colors.ink,
+          paddingHorizontal: 24,
+          paddingVertical: 12,
+          borderRadius: 28,
+        }}
+        activeOpacity={0.7}
+      >
+        <Text
+          style={{
+            fontFamily: "DMSans_400Regular",
+            fontSize: 11,
+            color: Colors.ink,
+            letterSpacing: 1.5,
+            textTransform: "uppercase",
+          }}
+        >
+          + Add to Watchlist
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
 export default function Watchlist() {
   const router = useRouter();
-  const { items } = useWatchlistStore();
+  const { user } = useUserStore();
+  const { items, isLoading, fetchItems } = useWatchlistStore();
+
+  useEffect(() => {
+    if (user?.id) fetchItems(user.id);
+    // fetchItems is stable from zustand; intentionally omitted
+  }, [user?.id]);
 
   const { totalRetail, statusCounts } = useMemo(() => {
     const total = items.reduce((s, i) => s + i.price, 0);
@@ -317,13 +353,19 @@ export default function Watchlist() {
           WATCHLIST · BEFORE · YOU · BUY
         </Text>
 
-        <TouchableOpacity hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+        <TouchableOpacity
+          onPress={() => router.push("/modal/add-watchlist-item" as never)}
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
           <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 18, color: Colors.ink, lineHeight: 20 }}>
             +
           </Text>
         </TouchableOpacity>
       </View>
 
+      {isLoading && items.length === 0 ? (
+        <ActivityIndicator style={{ marginTop: 64 }} color={Colors.ink} />
+      ) : (
       <FlatList
         data={items}
         keyExtractor={(item) => item.id}
@@ -331,7 +373,7 @@ export default function Watchlist() {
         ListHeaderComponent={
           <ListHeader totalRetail={totalRetail} statusCounts={statusCounts} />
         }
-        ListEmptyComponent={<EmptyState />}
+        ListEmptyComponent={<EmptyState onAdd={() => router.push("/modal/add-watchlist-item" as never)} />}
         renderItem={({ item }) => (
           <WatchlistRow
             item={item}
@@ -342,6 +384,7 @@ export default function Watchlist() {
           />
         )}
       />
+      )}
     </SafeAreaView>
   );
 }

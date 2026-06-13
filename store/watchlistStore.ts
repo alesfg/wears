@@ -1,4 +1,6 @@
 import { create } from "zustand";
+import { supabase } from "@/lib/supabase";
+import type { WatchlistItemRow, WatchlistItemInsert } from "@/lib/database.types";
 
 export type WatchlistStatus = "BUY" | "STRETCH" | "WAIT" | "SKIP";
 
@@ -39,85 +41,107 @@ export const VERDICT_TEXTS: Record<WatchlistStatus, string> = {
   SKIP: "Skip it. Not worth the cost basis.",
 };
 
-const MOCK_ITEMS: WatchlistItem[] = [
-  {
-    id: "wl-1",
-    name: "The Row · Margaux 15",
-    brand: "THE ROW",
-    price: 5290,
-    category: "LEATHER",
-    imageColor: "#2A2018",
-    status: "WAIT",
-    projectedWears: 240,
-    note: "projected workhorse · 240 wears = $22/wear",
-  },
-  {
-    id: "wl-2",
-    name: "Bottega Cassette",
-    brand: "BOTTEGA",
-    price: 3500,
-    category: "LEATHER",
-    imageColor: "#1E1810",
-    status: "STRETCH",
-    projectedWears: 140,
-    note: "evening only · risk underuse",
-  },
-  {
-    id: "wl-3",
-    name: "Lemaire Croissant Hobo",
-    brand: "LEMAIRE",
-    price: 1690,
-    category: "LEATHER",
-    imageColor: "#C4A882",
-    status: "BUY",
-    projectedWears: 320,
-    note: "daily bag · pays off in 8 mo",
-  },
-  {
-    id: "wl-4",
-    name: "Khaite Wallace Jeans",
-    brand: "KHAITE",
-    price: 540,
-    category: "DENIM",
-    imageColor: "#2A3F5C",
-    status: "BUY",
-    projectedWears: 160,
-    note: "denim base · 3-4× / wk",
-  },
-  {
-    id: "wl-5",
-    name: "Manolo Blahnik Hangisi",
-    brand: "MANOLO",
-    price: 1095,
-    category: "SHOES",
-    imageColor: "#C8B8E8",
-    status: "SKIP",
-    projectedWears: 18,
-    note: "wedding-only · $60.83/wear",
-  },
-];
+function fromRow(row: WatchlistItemRow): WatchlistItem {
+  const cpw = getProjectedCpw(row.price, row.projected_wears);
+  return {
+    id: row.id,
+    name: row.name,
+    brand: row.brand ?? "",
+    price: row.price,
+    category: row.category ?? "",
+    imageColor: row.image_color,
+    status: getVerdict(cpw),
+    projectedWears: row.projected_wears,
+    note: row.note ?? "",
+  };
+}
 
 interface WatchlistState {
   items: WatchlistItem[];
-  addItem: (item: Omit<WatchlistItem, "id">) => void;
-  updateWears: (id: string, projectedWears: number) => void;
-  removeItem: (id: string) => void;
+  isLoading: boolean;
+  error: string | null;
+
+  fetchItems: (userId: string) => Promise<void>;
+  addItem: (
+    item: Omit<WatchlistItem, "id" | "status">,
+    userId: string
+  ) => Promise<void>;
+  updateWears: (id: string, projectedWears: number) => Promise<void>;
+  removeItem: (id: string) => Promise<void>;
+  reset: () => void;
 }
 
 export const useWatchlistStore = create<WatchlistState>((set) => ({
-  items: MOCK_ITEMS,
-  addItem: (item) =>
-    set((state) => ({
-      items: [...state.items, { ...item, id: `wl-${Date.now()}` }],
-    })),
-  updateWears: (id, projectedWears) =>
+  items: [],
+  isLoading: false,
+  error: null,
+
+  fetchItems: async (userId) => {
+    set({ isLoading: true, error: null });
+    const { data, error } = await supabase
+      .from("watchlist_items")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      set({ error: error.message, isLoading: false });
+      return;
+    }
+
+    set({ items: (data ?? []).map(fromRow), isLoading: false });
+  },
+
+  addItem: async (item, userId) => {
+    const insert: WatchlistItemInsert = {
+      user_id: userId,
+      name: item.name,
+      brand: item.brand || null,
+      category: item.category || null,
+      price: item.price,
+      image_color: item.imageColor,
+      projected_wears: item.projectedWears,
+      note: item.note || null,
+    };
+
+    const { data, error } = await supabase
+      .from("watchlist_items")
+      .insert(insert)
+      .select()
+      .single();
+
+    if (error || !data) return;
+
+    set((state) => ({ items: [fromRow(data), ...state.items] }));
+  },
+
+  updateWears: async (id, projectedWears) => {
+    const { error } = await supabase
+      .from("watchlist_items")
+      .update({ projected_wears: projectedWears })
+      .eq("id", id);
+
+    if (error) return;
+
     set((state) => ({
       items: state.items.map((i) =>
         i.id === id
-          ? { ...i, projectedWears, status: getVerdict(getProjectedCpw(i.price, projectedWears)) }
+          ? {
+              ...i,
+              projectedWears,
+              status: getVerdict(getProjectedCpw(i.price, projectedWears)),
+            }
           : i
       ),
-    })),
-  removeItem: (id) =>
-    set((state) => ({ items: state.items.filter((i) => i.id !== id) })),
+    }));
+  },
+
+  removeItem: async (id) => {
+    const { error } = await supabase.from("watchlist_items").delete().eq("id", id);
+    if (error) return;
+
+    set((state) => ({ items: state.items.filter((i) => i.id !== id) }));
+  },
+
+  reset: () => set({ items: [], isLoading: false, error: null }),
 }));

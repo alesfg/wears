@@ -83,6 +83,9 @@ const en = {
   cancel: "CANCEL",
   newAsset: "New Asset",
   tapToAddPhoto: "TAP TO ADD PHOTO",
+  addPhotoTitle: "Add a photo",
+  takePhoto: "Take Photo",
+  chooseFromLibrary: "Choose from Library",
   itemName: "Item Name",
   brand: "Brand",
   costBasisField: "Cost Basis ($)",
@@ -92,6 +95,14 @@ const en = {
   validCostBasis: "Enter a valid cost basis.",
   failedToSave: "Failed to save. Try again.",
   logAsset: "Log Asset",
+
+  // Add to watchlist modal
+  newWatchlistItem: "On the Radar",
+  projectedWearsField: "Projected Wears",
+  noteField: "Note (optional)",
+  notePlaceholder: "e.g. daily bag · pays off in 8 mo",
+  validPrice: "Enter a valid price.",
+  addToWatchlist: "Add to Watchlist",
 
   // Onboarding
   step2Label: "STEP 2 / 3 · THE HOOK",
@@ -254,6 +265,9 @@ const es: typeof en = {
   cancel: "CANCELAR",
   newAsset: "Nuevo activo",
   tapToAddPhoto: "TOCA PARA AGREGAR FOTO",
+  addPhotoTitle: "Agregar una foto",
+  takePhoto: "Tomar foto",
+  chooseFromLibrary: "Elegir de la galería",
   itemName: "Nombre de la prenda",
   brand: "Marca",
   costBasisField: "Base de costo ($)",
@@ -263,6 +277,14 @@ const es: typeof en = {
   validCostBasis: "Ingresa una base de costo válida.",
   failedToSave: "No se pudo guardar. Inténtalo de nuevo.",
   logAsset: "Registrar activo",
+
+  // Modal agregar a watchlist
+  newWatchlistItem: "En la mira",
+  projectedWearsField: "Usos proyectados",
+  noteField: "Nota (opcional)",
+  notePlaceholder: "ej. bolso diario · se paga en 8 meses",
+  validPrice: "Ingresa un precio válido.",
+  addToWatchlist: "Agregar a watchlist",
 
   // Onboarding
   step2Label: "PASO 2 / 3 · EL GANCHO",
