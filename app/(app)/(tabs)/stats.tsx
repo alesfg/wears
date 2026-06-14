@@ -85,13 +85,16 @@ export default function Stats() {
           activeOpacity={0.88}
           style={{ marginHorizontal: 20, marginTop: 12, marginBottom: 4, overflow: "hidden" }}
         >
-          <View style={{ backgroundColor: "#1A0D06", paddingVertical: 18, paddingHorizontal: 20, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+          <View style={{ backgroundColor: "#1A0D06", paddingVertical: 22, paddingHorizontal: 20, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
             <View>
               <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: "rgba(245,242,235,0.45)", letterSpacing: 2.5, textTransform: "uppercase", marginBottom: 4 }}>
                 ANNUAL EARNINGS REPORT
               </Text>
-              <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 26, color: "#F5F2EB" }}>
-                Wears <Text style={{ color: Colors.cpw }}>&apos;{new Date().getFullYear().toString().slice(-2)}</Text>
+              <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 30, color: "#F5F2EB" }}>
+                Wears <Text style={{ color: Colors.cpw }}>&apos;{new Date().getFullYear().toString().slice(-2)}</Text> Wrapped
+              </Text>
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: "rgba(245,242,235,0.5)", letterSpacing: 1, marginTop: 4 }}>
+                See your full year recap
               </Text>
             </View>
             <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 22, color: "rgba(245,242,235,0.6)" }}>→</Text>

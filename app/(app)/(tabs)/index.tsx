@@ -46,8 +46,8 @@ function StatRow({ label, value, highlight }: { label: string; value: string; hi
   );
 }
 
-function ListHeader({ username, totalCostBasis, totalWears, pieces, blendedCpw }: {
-  username: string; totalCostBasis: number; totalWears: number; pieces: number; blendedCpw: number;
+function ListHeader({ username, totalCostBasis, totalWears, pieces, blendedCpw, onWrappedPress }: {
+  username: string; totalCostBasis: number; totalWears: number; pieces: number; blendedCpw: number; onWrappedPress: () => void;
 }) {
   return (
     <View style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 4 }}>
@@ -57,6 +57,26 @@ function ListHeader({ username, totalCostBasis, totalWears, pieces, blendedCpw }
       <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, textAlign: "center", letterSpacing: 2.5, textTransform: "uppercase", marginBottom: 16 }}>
         QUARTERLY · {username} · {formatPeriod()}
       </Text>
+
+      {/* Wrapped CTA */}
+      <TouchableOpacity
+        onPress={onWrappedPress}
+        activeOpacity={0.88}
+        style={{ marginBottom: 16 }}
+      >
+        <View style={{ backgroundColor: "#1A0D06", paddingVertical: 14, paddingHorizontal: 18, flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+          <View>
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 8, color: "rgba(245,242,235,0.45)", letterSpacing: 2.5, textTransform: "uppercase", marginBottom: 3 }}>
+              ANNUAL EARNINGS REPORT
+            </Text>
+            <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 20, color: "#F5F2EB" }}>
+              Wears <Text style={{ color: Colors.cpw }}>&apos;{new Date().getFullYear().toString().slice(-2)}</Text> Wrapped
+            </Text>
+          </View>
+          <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 18, color: "rgba(245,242,235,0.6)" }}>→</Text>
+        </View>
+      </TouchableOpacity>
+
       <DashedLine marginVertical={4} />
       <View style={{ paddingVertical: 8 }}>
         <StatRow label={t("costBasis")} value={`$${totalCostBasis.toFixed(2)}`} />
@@ -224,6 +244,10 @@ export default function ClosetLedger() {
             totalWears={stats.totalWears}
             pieces={stats.pieces}
             blendedCpw={stats.blendedCpw}
+            onWrappedPress={() => {
+              track(Events.FEATURE_USED, { feature: "wrapped", source: "home" });
+              router.push("/modal/wrapped" as never);
+            }}
           />
         }
         ListEmptyComponent={<EmptyState />}

@@ -225,9 +225,12 @@ function OutfitCard({ ds, items }: { ds: string; items: ItemWithWears[] }) {
   const today = new Date();
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
+  const isToday = ds === todayDs();
   const isYesterday = ds === yesterday.toISOString().split("T")[0];
 
-  const dateLabel = isYesterday
+  const dateLabel = isToday
+    ? `${t("calToday")} · ${MONTH_SHORT[d.getMonth()]} · ${String(d.getDate()).padStart(2, "0")}`
+    : isYesterday
     ? `${t("calYesterday")} · ${MONTH_SHORT[d.getMonth()]} · ${String(d.getDate()).padStart(2, "0")}`
     : `${d.toLocaleDateString("en-US", { weekday: "long" }).toUpperCase()} · ${MONTH_SHORT[d.getMonth()]} · ${String(d.getDate()).padStart(2, "0")}`;
 
@@ -354,10 +357,10 @@ function MonthView({ wbd }: { wbd: Record<string, ItemWithWears[]> }) {
   const displayDs = useMemo(() => {
     if (selectedDs && (wbd[selectedDs]?.length ?? 0) > 0) return selectedDs;
     const d = new Date(now);
-    for (let i = 0; i < 60; i++) {
-      d.setDate(d.getDate() - 1);
+    for (let i = 0; i < 61; i++) {
       const ds = d.toISOString().split("T")[0];
       if ((wbd[ds]?.length ?? 0) > 0) return ds;
+      d.setDate(d.getDate() - 1);
     }
     return null;
   }, [selectedDs, wbd]);
@@ -388,6 +391,7 @@ function MonthView({ wbd }: { wbd: Record<string, ItemWithWears[]> }) {
                 color: Colors.ink,
                 lineHeight: 64,
                 paddingTop: 6,
+                paddingLeft: 4,
               }}
             >
               {MONTH_NAMES[month]}
