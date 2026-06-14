@@ -6,7 +6,9 @@ import {
   Dimensions,
   Image,
   Share,
-  Platform,
+  ScrollView,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -19,6 +21,8 @@ import { Colors } from "@/constants/theme";
 import { posthog, Events } from "@/lib/posthog";
 import ViewShot, { type ViewShotRef } from "react-native-view-shot";
 import * as SharingLib from "expo-sharing";
+import { Asset as MediaAsset, requestPermissionsAsync } from "expo-media-library";
+import { WrappedReceiptShare } from "@/components/features/shares/WrappedReceiptShare";
 import type { ItemWithWears } from "@/lib/database.types";
 
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -338,72 +342,142 @@ function Slide3({ items }: { items: ItemWithWears[] }) {
 }
 
 // ─── Slide 4: Final card (cream) ──────────────────────────────────────────────
+type ShareFormat = "card" | "receipt";
+
 function Slide4({
-  name, year, blendedCpw, onShare, onReplay,
+  name, year, pieces, totalWears, blendedCpw, mostProfitable, busiestMonth,
+  format, onFormatChange, cardRef, onShare, onSaveToRoll, saving, onReplay,
 }: {
-  name: string; year: string; blendedCpw: number; onShare: () => void; onReplay: () => void;
+  name: string; year: string; pieces: number; totalWears: number; blendedCpw: number;
+  mostProfitable: ItemWithWears | null; busiestMonth: [string, number] | null;
+  format: ShareFormat; onFormatChange: (f: ShareFormat) => void;
+  cardRef: React.RefObject<ViewShotRef | null>;
+  onShare: () => void; onSaveToRoll: () => void; saving: boolean; onReplay: () => void;
 }) {
+  const cardWidth = SW - 48;
+
   return (
-    <View style={{ flex: 1, paddingHorizontal: 24 }}>
-      {/* Tilted terracotta card */}
-      <View style={{ marginTop: 12, transform: [{ rotate: "-4deg" }], shadowColor: "#000", shadowOpacity: 0.15, shadowRadius: 20, shadowOffset: { width: 0, height: 6 }, elevation: 8 }}>
-        <LinearGradient
-          colors={["#8B3015", Colors.cpw, "#A0401F"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{ padding: 24, paddingBottom: 28 }}
-        >
-          <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 4 }}>
-            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: "rgba(245,242,235,0.6)", letterSpacing: 2, textTransform: "uppercase" }}>
-              WEARS · SHAREHOLDER
+    <View style={{ flex: 1 }}>
+      {/* Format tabs */}
+      <View style={{ flexDirection: "row", justifyContent: "center", gap: 8, marginTop: 8 }}>
+        {(["card", "receipt"] as ShareFormat[]).map((f) => (
+          <TouchableOpacity
+            key={f}
+            onPress={() => onFormatChange(f)}
+            style={{
+              paddingHorizontal: 18,
+              paddingVertical: 6,
+              borderRadius: 100,
+              borderWidth: 1,
+              borderColor: format === f ? Colors.ink : Colors.border,
+              backgroundColor: format === f ? Colors.ink : "transparent",
+            }}
+            activeOpacity={0.7}
+          >
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, letterSpacing: 2, textTransform: "uppercase", color: format === f ? Colors.cream : Colors.muted }}>
+              {f === "card" ? "Card" : "Receipt"}
             </Text>
-            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: "rgba(245,242,235,0.6)", letterSpacing: 1 }}>
-              &apos;{year} / Q4
-            </Text>
-          </View>
-
-          <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 44, color: "#F5F2EB", lineHeight: 50, marginTop: 8 }}>
-            {name}.
-          </Text>
-
-          {/* Dashed line */}
-          <View style={{ borderBottomWidth: 1, borderBottomColor: "rgba(245,242,235,0.3)", borderStyle: "dashed", marginVertical: 16 }} />
-
-          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: "rgba(245,242,235,0.6)", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>
-            BLENDED COST PER WEAR
-          </Text>
-          <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 56, color: "#F5F2EB", letterSpacing: -1 }}>
-            {cpwStr(blendedCpw)}
-          </Text>
-        </LinearGradient>
+          </TouchableOpacity>
+        ))}
       </View>
 
-      <View style={{ flex: 1 }} />
+      {/* Preview */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ flexGrow: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 24 }}
+        style={{ flex: 1 }}
+      >
+        <ViewShot ref={cardRef} options={{ format: "png", quality: 1.0 }}>
+          {format === "card" ? (
+            <View style={{ width: cardWidth, transform: [{ rotate: "-4deg" }], shadowColor: "#000", shadowOpacity: 0.15, shadowRadius: 20, shadowOffset: { width: 0, height: 6 }, elevation: 8 }}>
+              <LinearGradient
+                colors={["#8B3015", Colors.cpw, "#A0401F"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{ padding: 24, paddingBottom: 28 }}
+              >
+                <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 4 }}>
+                  <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: "rgba(245,242,235,0.6)", letterSpacing: 2, textTransform: "uppercase" }}>
+                    WEARS · SHAREHOLDER
+                  </Text>
+                  <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: "rgba(245,242,235,0.6)", letterSpacing: 1 }}>
+                    &apos;{year} / Q4
+                  </Text>
+                </View>
+
+                <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 44, color: "#F5F2EB", lineHeight: 50, marginTop: 8 }}>
+                  {name}.
+                </Text>
+
+                {/* Dashed line */}
+                <View style={{ borderBottomWidth: 1, borderBottomColor: "rgba(245,242,235,0.3)", borderStyle: "dashed", marginVertical: 16 }} />
+
+                <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: "rgba(245,242,235,0.6)", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>
+                  BLENDED COST PER WEAR
+                </Text>
+                <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 56, color: "#F5F2EB", letterSpacing: -1 }}>
+                  {cpwStr(blendedCpw)}
+                </Text>
+              </LinearGradient>
+            </View>
+          ) : (
+            <WrappedReceiptShare
+              name={name}
+              year={year}
+              pieces={pieces}
+              totalWears={totalWears}
+              blendedCpw={blendedCpw}
+              mostProfitable={mostProfitable}
+              busiestMonth={busiestMonth}
+            />
+          )}
+        </ViewShot>
+      </ScrollView>
 
       {/* Tagline */}
-      <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 26, color: Colors.ink, lineHeight: 34, textAlign: "center", marginBottom: 32 }}>
-        You&apos;re{" "}
-        <Text style={{ color: Colors.cpw }}>profitable</Text>
-        , {name}.{"\n"}Q1 outlook strong.
-      </Text>
+      {format === "card" && (
+        <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 26, color: Colors.ink, lineHeight: 34, textAlign: "center", marginBottom: 20, paddingHorizontal: 24 }}>
+          You&apos;re{" "}
+          <Text style={{ color: Colors.cpw }}>profitable</Text>
+          , {name}.{"\n"}Q1 outlook strong.
+        </Text>
+      )}
 
       {/* Action buttons */}
-      <View style={{ flexDirection: "row", gap: 12, marginBottom: 20 }}>
-        <TouchableOpacity
-          onPress={onShare}
-          style={{ flex: 1, backgroundColor: Colors.ink, paddingVertical: 16, alignItems: "center", borderRadius: 100, flexDirection: "row", justifyContent: "center", gap: 8 }}
-          activeOpacity={0.85}
-        >
-          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.cream, letterSpacing: 1 }}>
-            ↑  Share to stories
-          </Text>
-        </TouchableOpacity>
+      <View style={{ paddingHorizontal: 24, marginBottom: 20, gap: 10 }}>
+        <View style={{ flexDirection: "row", gap: 10 }}>
+          <TouchableOpacity
+            onPress={onShare}
+            disabled={saving}
+            style={{ flex: 1, backgroundColor: Colors.ink, paddingVertical: 16, alignItems: "center", borderRadius: 100, flexDirection: "row", justifyContent: "center", gap: 8 }}
+            activeOpacity={0.85}
+          >
+            {saving ? (
+              <ActivityIndicator color={Colors.cream} />
+            ) : (
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.cream, letterSpacing: 1 }}>
+                ↑  Share
+              </Text>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={onSaveToRoll}
+            disabled={saving}
+            style={{ flex: 1, backgroundColor: "transparent", paddingVertical: 16, alignItems: "center", borderRadius: 100, borderWidth: 1, borderColor: Colors.ink }}
+            activeOpacity={0.7}
+          >
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.ink, letterSpacing: 1 }}>
+              Save to Photos
+            </Text>
+          </TouchableOpacity>
+        </View>
         <TouchableOpacity
           onPress={onReplay}
-          style={{ flex: 1, backgroundColor: "transparent", paddingVertical: 16, alignItems: "center", borderRadius: 100, borderWidth: 1, borderColor: Colors.ink }}
+          style={{ paddingVertical: 12, alignItems: "center" }}
           activeOpacity={0.7}
         >
-          <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 16, color: Colors.ink }}>
+          <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 14, color: Colors.muted }}>
             Replay
           </Text>
         </TouchableOpacity>
@@ -497,21 +571,48 @@ export default function Wrapped() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slide]);
 
-  const shotRef = useRef<ViewShotRef>(null);
+  const [shareFormat, setShareFormat] = useState<ShareFormat>("card");
+  const [saving, setSaving] = useState(false);
+  const cardRef = useRef<ViewShotRef>(null);
+
+  const captureCard = async (): Promise<string | null> => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return cardRef.current ? await (cardRef.current as any).capture() : null;
+  };
 
   const onShare = async () => {
+    setSaving(true);
     try {
-      // Capture the current slide as a 9:16 image for Stories
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const uri = shotRef.current ? await (shotRef.current as any).capture() : null;
+      const uri = await captureCard();
       if (uri && await SharingLib.isAvailableAsync()) {
         await SharingLib.shareAsync(uri, { mimeType: "image/png", dialogTitle: "Share your Wrapped" });
+        posthog.capture(Events.SHARE_EXPORTED, { format: shareFormat, source: "wrapped", action: "share" });
       } else {
         await Share.share({
           message: `My Wears Wrapped '${year}: ${stats.pieces} pieces, ${stats.totalWears} wears, $${stats.blendedCpw.toFixed(2)} blended CPW. @wears`,
         });
       }
     } catch { /* ignore */ }
+    setSaving(false);
+  };
+
+  const onSaveToRoll = async () => {
+    const { status } = await requestPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission needed", "Allow photo library access to save.");
+      return;
+    }
+    setSaving(true);
+    try {
+      const uri = await captureCard();
+      if (!uri) { setSaving(false); return; }
+      await MediaAsset.create(uri);
+      posthog.capture(Events.SHARE_EXPORTED, { format: shareFormat, source: "wrapped", action: "save" });
+      Alert.alert("Saved!", "Image saved to your camera roll.");
+    } catch (e: unknown) {
+      Alert.alert("Error saving", e instanceof Error ? e.message : String(e));
+    }
+    setSaving(false);
   };
 
   const onReplay = () => setSlide(0);
@@ -527,7 +628,7 @@ export default function Wrapped() {
   const isLight = !SLIDE_CONFIG[slide].dark;
 
   return (
-    <ViewShot ref={shotRef} options={{ format: "png", quality: 1.0 }} style={{ flex: 1 }}>
+    <View style={{ flex: 1 }}>
       {/* Backgrounds */}
       {slide === 0 && (
         <LinearGradient
@@ -587,15 +688,24 @@ export default function Wrapped() {
               <Slide4
                 name={displayName}
                 year={year}
+                pieces={stats.pieces}
+                totalWears={stats.totalWears}
                 blendedCpw={stats.blendedCpw}
+                mostProfitable={stats.mostProfitable}
+                busiestMonth={stats.busiestMonth}
+                format={shareFormat}
+                onFormatChange={setShareFormat}
+                cardRef={cardRef}
                 onShare={onShare}
+                onSaveToRoll={onSaveToRoll}
+                saving={saving}
                 onReplay={onReplay}
               />
             )}
           </View>
         </View>
       </View>
-    </ViewShot>
+    </View>
   );
 }
 
