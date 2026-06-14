@@ -3,7 +3,7 @@ import PostHog from "posthog-react-native";
 const key = process.env.EXPO_PUBLIC_POSTHOG_KEY ?? "";
 
 export const posthog = new PostHog(key || "placeholder", {
-  host: "https://us.i.posthog.com",
+  host: "https://eu.i.posthog.com",
   disabled: !key,
   flushAt: 20,
   flushInterval: 30000,

@@ -105,7 +105,7 @@ export default function AddItem() {
             if (warnings.length) setServiceWarning(warnings.join(" · ") + " — fill in manually");
           });
 
-        removeBackground(asset.base64)
+        removeBackground(asset.uri, asset.base64)
           .then((clean) => { if (clean) setCleanImageUri(clean); })
           .catch(() => {})
           .finally(() => setRemovingBg(false));

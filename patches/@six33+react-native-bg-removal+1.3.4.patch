@@ -1,0 +1,61 @@
+diff --git a/node_modules/@six33/react-native-bg-removal/ios/ReactNativeBackgroundRemover.swift b/node_modules/@six33/react-native-bg-removal/ios/ReactNativeBackgroundRemover.swift
+index 926e808..548768e 100644
+--- a/node_modules/@six33/react-native-bg-removal/ios/ReactNativeBackgroundRemover.swift
++++ b/node_modules/@six33/react-native-bg-removal/ios/ReactNativeBackgroundRemover.swift
+@@ -35,7 +35,7 @@ public class BackgroundRemoverSwift: NSObject {
+                         }
+                         
+                         // Apply mask to remove background
+-                        let maskedImage = self.applyMask(mask: maskImage, to: originalImage)
++                        let maskedImage = self.applyMask(mask: maskImage, to: originalImage).cropped(to: originalImage.extent)
+                         
+                         // Convert to UIImage (renders to CGImage)
+                         let uiImage = self.convertToUIImage(ciImage: maskedImage)
+@@ -309,7 +309,7 @@ public class BackgroundRemoverSwift: NSObject {
+     private func convertToUIImage(ciImage: CIImage) -> UIImage {
+         let context = CIContext()
+         guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else {
+-            fatalError("Failed to render CGImage")
++            return UIImage()
+         }
+ 
+         return UIImage(cgImage: cgImage)
+diff --git a/node_modules/@six33/react-native-bg-removal/lib/commonjs/index.js b/node_modules/@six33/react-native-bg-removal/lib/commonjs/index.js
+index a5a262a..85afb92 100644
+--- a/node_modules/@six33/react-native-bg-removal/lib/commonjs/index.js
++++ b/node_modules/@six33/react-native-bg-removal/lib/commonjs/index.js
+@@ -53,7 +53,7 @@ async function removeBackground(imageURI, options = {
+ async function isNativeBackgroundRemovalSupported() {
+   try {
+     // Try with a dummy/test image to check capability
+-    await BackgroundRemover.removeBackground('test://capability-check');
++    await BackgroundRemover.removeBackground('test://capability-check', { trim: true });
+     return true;
+   } catch (error) {
+     if (error instanceof Error && error.message === 'REQUIRES_API_FALLBACK') {
+diff --git a/node_modules/@six33/react-native-bg-removal/lib/module/index.js b/node_modules/@six33/react-native-bg-removal/lib/module/index.js
+index 7b57524..4183f54 100644
+--- a/node_modules/@six33/react-native-bg-removal/lib/module/index.js
++++ b/node_modules/@six33/react-native-bg-removal/lib/module/index.js
+@@ -46,7 +46,7 @@ export async function removeBackground(imageURI, options = {
+ export async function isNativeBackgroundRemovalSupported() {
+   try {
+     // Try with a dummy/test image to check capability
+-    await BackgroundRemover.removeBackground('test://capability-check');
++    await BackgroundRemover.removeBackground('test://capability-check', { trim: true });
+     return true;
+   } catch (error) {
+     if (error instanceof Error && error.message === 'REQUIRES_API_FALLBACK') {
+diff --git a/node_modules/@six33/react-native-bg-removal/src/index.tsx b/node_modules/@six33/react-native-bg-removal/src/index.tsx
+index cff759c..bfe19a7 100644
+--- a/node_modules/@six33/react-native-bg-removal/src/index.tsx
++++ b/node_modules/@six33/react-native-bg-removal/src/index.tsx
+@@ -69,7 +69,7 @@ export async function removeBackground(
+ export async function isNativeBackgroundRemovalSupported(): Promise<boolean> {
+   try {
+     // Try with a dummy/test image to check capability
+-    await BackgroundRemover.removeBackground('test://capability-check');
++    await BackgroundRemover.removeBackground('test://capability-check', { trim: true });
+     return true;
+   } catch (error) {
+     if (error instanceof Error && error.message === 'REQUIRES_API_FALLBACK') {
