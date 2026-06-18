@@ -16,6 +16,7 @@ import { useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 import { useItemStore } from "@/store/itemStore";
 import { useUserStore } from "@/store/userStore";
+import { useCurrencyStore } from "@/store/currencyStore";
 import { supabase } from "@/lib/supabase";
 import { DashedLine } from "@/components/ui/DashedLine";
 import { Colors } from "@/constants/theme";
@@ -38,6 +39,7 @@ export default function AddItem() {
   const router = useRouter();
   const { user } = useUserStore();
   const { addItem } = useItemStore();
+  const symbol = useCurrencyStore((s) => s.symbol);
 
   const [name, setName] = useState("");
   const [brand, setBrand] = useState("");
@@ -61,8 +63,6 @@ export default function AddItem() {
   const pickImage = async (source: "camera" | "library") => {
     const pickerOptions: ImagePicker.ImagePickerOptions = {
       mediaTypes: ["images"],
-      allowsEditing: true,
-      aspect: [1, 1],
       quality: 0.7,
       base64: true,
     };
@@ -248,7 +248,7 @@ export default function AddItem() {
                 <Image
                   source={{ uri: displayImage }}
                   style={{ width: "100%", height: "100%" }}
-                  resizeMode={cleanImageUri ? "contain" : "cover"}
+                  resizeMode="contain"
                 />
 
                 {/* Processing overlay */}
@@ -323,7 +323,7 @@ export default function AddItem() {
           </Field>
 
           {/* Cost Basis — always manual */}
-          <Field label={t("costBasisField")}>
+          <Field label={t("costBasisField", { symbol })}>
             <TextInput
               value={price}
               onChangeText={setPrice}

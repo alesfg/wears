@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity, Image } from "react-native";
 import { Colors } from "@/constants/theme";
+import { useCurrencyStore } from "@/store/currencyStore";
 import type { ItemWithWears } from "@/lib/database.types";
 import { t } from "@/lib/i18n";
 
@@ -27,6 +28,7 @@ function swatchColor(id: string): string {
 }
 
 export function ItemRow({ item, onPress }: Props) {
+  const symbol = useCurrencyStore((s) => s.symbol);
   const cpwFormatted = item.cpw.toFixed(2);
   const wearCount = item.wears.length;
   const dotColor = getTierDotColor(item.cpw);
@@ -34,7 +36,7 @@ export function ItemRow({ item, onPress }: Props) {
   const meta = [
     item.brand ? item.brand.toUpperCase() : null,
     `${wearCount}×`,
-    `$${item.price}`,
+    `${symbol}${item.price}`,
   ]
     .filter(Boolean)
     .join(" · ");
@@ -58,16 +60,15 @@ export function ItemRow({ item, onPress }: Props) {
           height: 60,
           overflow: "hidden",
           flexShrink: 0,
+          backgroundColor: swatchColor(item.id),
         }}
       >
-        {item.image_url ? (
+        {item.image_url && (
           <Image
             source={{ uri: item.image_url }}
             style={{ width: 60, height: 60 }}
-            resizeMode="cover"
+            resizeMode="contain"
           />
-        ) : (
-          <View style={{ flex: 1, backgroundColor: swatchColor(item.id) }} />
         )}
       </View>
 
@@ -118,7 +119,7 @@ export function ItemRow({ item, onPress }: Props) {
             color: Colors.cpw,
           }}
         >
-          ${cpwFormatted}
+          {symbol}{cpwFormatted}
         </Text>
         <Text
           style={{
@@ -131,6 +132,42 @@ export function ItemRow({ item, onPress }: Props) {
           {t("perWear")}
         </Text>
       </View>
+    </TouchableOpacity>
+  );
+}
+
+export function ItemGridCard({ item, onPress }: Props) {
+  const symbol = useCurrencyStore((s) => s.symbol);
+  const cpwFormatted = item.cpw.toFixed(2);
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      style={{ flex: 1, margin: 6 }}
+      activeOpacity={0.7}
+    >
+      <View style={{ width: "100%", aspectRatio: 1, overflow: "hidden", marginBottom: 8, backgroundColor: swatchColor(item.id) }}>
+        {item.image_url && (
+          <Image source={{ uri: item.image_url }} style={{ width: "100%", height: "100%" }} resizeMode="contain" />
+        )}
+      </View>
+      <Text
+        style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 14, color: Colors.ink, lineHeight: 18 }}
+        numberOfLines={1}
+      >
+        {item.name}
+      </Text>
+      <Text
+        style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 0.5, marginTop: 2 }}
+        numberOfLines={1}
+      >
+        {item.brand ? `${item.brand.toUpperCase()} · ` : ""}{item.wears.length}×
+      </Text>
+      <Text
+        style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 14, color: Colors.cpw, marginTop: 2 }}
+      >
+        {symbol}{cpwFormatted}<Text style={{ fontFamily: "DMSans_400Regular", fontSize: 8, color: Colors.muted }}> {t("perWear")}</Text>
+      </Text>
     </TouchableOpacity>
   );
 }

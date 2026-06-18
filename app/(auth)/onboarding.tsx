@@ -17,6 +17,7 @@ import * as ImagePicker from "expo-image-picker";
 import { Feather } from "@expo/vector-icons";
 import { useItemStore } from "@/store/itemStore";
 import { useUserStore } from "@/store/userStore";
+import { useCurrencyStore } from "@/store/currencyStore";
 import { supabase } from "@/lib/supabase";
 import { Colors } from "@/constants/theme";
 import { posthog, Events } from "@/lib/posthog";
@@ -35,9 +36,9 @@ async function completeOnboarding() {
 
 const WEAR_MILESTONES = [1, 5, 10, 20, 30];
 
-function formatCpw(val: number): string {
-  if (val >= 100 && Number.isInteger(val)) return `$${val}`;
-  return `$${val.toFixed(2)}`;
+function formatCpw(val: number, symbol: string): string {
+  if (val >= 100 && Number.isInteger(val)) return `${symbol}${val}`;
+  return `${symbol}${val.toFixed(2)}`;
 }
 
 function ProgressBar({ filled }: { filled: number }) {
@@ -74,6 +75,7 @@ export default function Onboarding() {
   const router = useRouter();
   const { user } = useUserStore();
   const { addItem } = useItemStore();
+  const symbol = useCurrencyStore((s) => s.symbol);
 
   // form
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -93,8 +95,6 @@ export default function Onboarding() {
     if (status !== "granted") return;
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
-      allowsEditing: true,
-      aspect: [1, 1],
       quality: 0.8,
     });
     if (!result.canceled && result.assets[0]) setImageUri(result.assets[0].uri);
@@ -170,7 +170,7 @@ export default function Onboarding() {
               activeOpacity={0.85}
             >
               {imageUri ? (
-                <Image source={{ uri: imageUri }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
+                <Image source={{ uri: imageUri }} style={{ width: "100%", height: "100%" }} resizeMode="contain" />
               ) : (
                 <View style={{ alignItems: "center", gap: 10 }}>
                   <Feather name="camera" size={32} color="rgba(255,255,255,0.55)" />
@@ -214,7 +214,7 @@ export default function Onboarding() {
 
             {/* Price */}
             <View style={{ marginBottom: 8 }}>
-              <Text style={labelStyle}>{t("costBasisLabel")}</Text>
+              <Text style={labelStyle}>{t("costBasisLabel", { symbol })}</Text>
               <TextInput
                 value={price}
                 onChangeText={setPrice}
@@ -274,7 +274,7 @@ export default function Onboarding() {
           {t("heresDeal")}
         </Text>
         <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 40, color: Colors.ink, lineHeight: 48, marginBottom: 32 }}>
-          The {displayName}{"\n"}cost ${savedPrice % 1 === 0 ? savedPrice : savedPrice.toFixed(2)}.
+          The {displayName}{"\n"}cost {symbol}{savedPrice % 1 === 0 ? savedPrice : savedPrice.toFixed(2)}.
         </Text>
 
         {/* Table header */}
@@ -283,7 +283,7 @@ export default function Onboarding() {
             {t("everyWearDrops")}
           </Text>
           <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase" }}>
-            CPW
+            {t("cpwCol")}
           </Text>
         </View>
 
@@ -307,7 +307,7 @@ export default function Onboarding() {
                   <View style={{ width: `${Math.max(barFraction * 100, 1.5)}%`, height: 8, backgroundColor: barColor }} />
                 </View>
                 <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 18, color: cpwColor, textAlign: "right", width: 72 }}>
-                  {formatCpw(cpw)}
+                  {formatCpw(cpw, symbol)}
                 </Text>
               </View>
               <View style={{ height: 1, borderBottomWidth: 1, borderBottomColor: Colors.border, borderStyle: "dashed" }} />

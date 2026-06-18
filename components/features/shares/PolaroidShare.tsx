@@ -1,6 +1,8 @@
 import { View, Text, Image } from "react-native";
 import type { ItemWithWears } from "@/lib/database.types";
 import { isProfitable } from "@/constants/config";
+import { useCurrencyStore } from "@/store/currencyStore";
+import { t } from "@/lib/i18n";
 
 interface Props {
   item: ItemWithWears;
@@ -14,6 +16,7 @@ const FRAME_PAD = 11; // white border on top + sides
 const BOTTOM_H = 82;  // white polaroid bottom section
 
 export function PolaroidShare({ item, username }: Props) {
+  const symbol = useCurrencyStore((s) => s.symbol);
   const photoW = POLAROID_W - FRAME_PAD * 2;
   const categoryLabel = [item.category?.toUpperCase(), item.brand?.toUpperCase()]
     .filter(Boolean)
@@ -141,7 +144,7 @@ export function PolaroidShare({ item, username }: Props) {
                 lineHeight: 30,
               }}
             >
-              ${item.cpw.toFixed(2)} / wear{" "}
+              {symbol}{item.cpw.toFixed(2)} {t("sharePerWear")}{" "}
               <Text style={{ fontSize: 17 }}>🌸</Text>
             </Text>
             <Text
@@ -154,7 +157,7 @@ export function PolaroidShare({ item, username }: Props) {
                 marginTop: 5,
               }}
             >
-              {item.name.toUpperCase()} · {item.wears.length}× WORN
+              {item.name.toUpperCase()} · {item.wears.length}× {t("shareWornLabel")}
             </Text>
           </View>
         </View>
@@ -186,7 +189,7 @@ export function PolaroidShare({ item, username }: Props) {
               lineHeight: 13,
             }}
           >
-            cost basis
+            {t("shareCostBasisLower")}
           </Text>
           <Text
             style={{
@@ -196,7 +199,7 @@ export function PolaroidShare({ item, username }: Props) {
               lineHeight: 24,
             }}
           >
-            justified
+            {t("shareJustified")}
           </Text>
         </View>
       </View>

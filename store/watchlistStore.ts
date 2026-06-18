@@ -34,13 +34,6 @@ export const VERDICT_COLORS: Record<WatchlistStatus, string> = {
   SKIP: "#8A8070",
 };
 
-export const VERDICT_TEXTS: Record<WatchlistStatus, string> = {
-  BUY: "A no-brainer. Add it now.",
-  STRETCH: "A reach, but workable.",
-  WAIT: "Worth reconsidering.",
-  SKIP: "Skip it. Not worth the cost basis.",
-};
-
 function fromRow(row: WatchlistItemRow): WatchlistItem {
   const cpw = getProjectedCpw(row.price, row.projected_wears);
   return {

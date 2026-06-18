@@ -5,6 +5,7 @@ import { useEffect, useMemo } from "react";
 import { Colors } from "@/constants/theme";
 import { posthog, Events } from "@/lib/posthog";
 import { useUserStore } from "@/store/userStore";
+import { useCurrencyStore } from "@/store/currencyStore";
 import {
   useWatchlistStore,
   getProjectedCpw,
@@ -12,11 +13,12 @@ import {
   type WatchlistItem,
   type WatchlistStatus,
 } from "@/store/watchlistStore";
+import { t } from "@/lib/i18n";
 
 const STATUS_ORDER: WatchlistStatus[] = ["BUY", "STRETCH", "WAIT", "SKIP"];
 
-function formatPrice(n: number) {
-  return "$" + n.toLocaleString("en-US");
+function formatPrice(n: number, symbol: string) {
+  return symbol + n.toLocaleString("en-US");
 }
 
 function StatusBadge({ status }: { status: WatchlistStatus }) {
@@ -72,6 +74,7 @@ function StatusDot({ status, count }: { status: WatchlistStatus; count: number }
 }
 
 function WatchlistRow({ item, onPress }: { item: WatchlistItem; onPress: () => void }) {
+  const symbol = useCurrencyStore((s) => s.symbol);
   const cpw = getProjectedCpw(item.price, item.projectedWears);
 
   return (
@@ -122,7 +125,7 @@ function WatchlistRow({ item, onPress }: { item: WatchlistItem; onPress: () => v
               marginTop: 1,
             }}
           >
-            {item.brand} · {formatPrice(item.price)}
+            {item.brand} · {formatPrice(item.price, symbol)}
           </Text>
 
           <View style={{ flexDirection: "row", alignItems: "baseline", gap: 5, marginTop: 4 }}>
@@ -133,7 +136,7 @@ function WatchlistRow({ item, onPress }: { item: WatchlistItem; onPress: () => v
                 color: Colors.ink,
               }}
             >
-              {formatPrice(parseFloat(cpw.toFixed(2)))}
+              {formatPrice(parseFloat(cpw.toFixed(2)), symbol)}
             </Text>
             <Text
               style={{
@@ -144,7 +147,7 @@ function WatchlistRow({ item, onPress }: { item: WatchlistItem; onPress: () => v
                 textTransform: "uppercase",
               }}
             >
-              PROJ · {item.projectedWears} WEARS
+              {t("wishlistProjWears", { n: String(item.projectedWears) })}
             </Text>
           </View>
 
@@ -177,6 +180,7 @@ function ListHeader({
   totalRetail: number;
   statusCounts: Record<WatchlistStatus, number>;
 }) {
+  const symbol = useCurrencyStore((s) => s.symbol);
   const totalCount = Object.values(statusCounts).reduce((s, n) => s + n, 0);
   const retailStr = totalRetail.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
@@ -193,7 +197,7 @@ function ListHeader({
           marginBottom: 2,
         }}
       >
-        {totalCount} PIECES · PROJECTED OUTFLOW
+        {t("wishlistPiecesOutflow", { count: String(totalCount) })}
       </Text>
 
       {/* Big retail total */}
@@ -206,7 +210,7 @@ function ListHeader({
             lineHeight: 64,
           }}
         >
-          ${retailStr}
+          {symbol}{retailStr}
         </Text>
         <Text
           style={{
@@ -216,7 +220,7 @@ function ListHeader({
             marginLeft: 8,
           }}
         >
-          at retail
+          {t("wishlistAtRetail")}
         </Text>
       </View>
 
@@ -251,7 +255,7 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
           marginBottom: 12,
         }}
       >
-        WATCHLIST EMPTY
+        {t("wishlistEmptyLabel")}
       </Text>
       <Text
         style={{
@@ -262,7 +266,7 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
           marginBottom: 8,
         }}
       >
-        Nothing under evaluation.
+        {t("wishlistEmptyTitle")}
       </Text>
       <Text
         style={{
@@ -274,7 +278,7 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
           marginBottom: 24,
         }}
       >
-        Add pieces you're considering to calculate their projected CPW before you buy.
+        {t("wishlistEmptyBody")}
       </Text>
       <TouchableOpacity
         onPress={onAdd}
@@ -296,7 +300,7 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
             textTransform: "uppercase",
           }}
         >
-          + Add to Watchlist
+          {t("wishlistAddCta")}
         </Text>
       </TouchableOpacity>
     </View>
@@ -350,7 +354,7 @@ export default function Watchlist() {
             textTransform: "uppercase",
           }}
         >
-          WATCHLIST · BEFORE · YOU · BUY
+          {t("wishlistHeaderTag")}
         </Text>
 
         <TouchableOpacity

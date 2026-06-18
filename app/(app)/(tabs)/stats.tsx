@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useRouter } from "expo-router";
 import { useItemStore } from "@/store/itemStore";
 import { useUserStore } from "@/store/userStore";
+import { useCurrencyStore } from "@/store/currencyStore";
 import { usePaywall } from "@/hooks/usePaywall";
 import { DashedLine } from "@/components/ui/DashedLine";
 import { TierBadge } from "@/components/ui/TierBadge";
@@ -32,6 +33,7 @@ export default function Stats() {
   const { items } = useItemStore();
   const { user } = useUserStore();
   const { isPro } = usePaywall();
+  const symbol = useCurrencyStore((s) => s.symbol);
 
   const stats = useMemo(() => {
     if (items.length === 0) return null;
@@ -139,12 +141,12 @@ export default function Stats() {
               <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 2, textTransform: "uppercase", marginBottom: 12 }}>
                 SUMMARY
               </Text>
-              <StatRow label="Total Cost Basis" value={`$${stats.totalCostBasis.toFixed(2)}`} />
+              <StatRow label="Total Cost Basis" value={`${symbol}${stats.totalCostBasis.toFixed(2)}`} />
               <StatRow label="Wears Logged" value={String(stats.totalWears)} />
               <StatRow label="Pieces" value={String(items.length)} />
               <StatRow label="Profitable Items" value={`${stats.profitable} / ${items.length}`} />
               <View style={{ marginTop: 8 }}>
-                <StatRow label="Blended CPW" value={`$${stats.blendedCpw.toFixed(2)}`} highlight />
+                <StatRow label="Blended CPW" value={`${symbol}${stats.blendedCpw.toFixed(2)}`} highlight />
               </View>
             </View>
 
@@ -198,12 +200,12 @@ export default function Stats() {
                         {item.name}
                       </Text>
                       <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 0.5, marginTop: 1 }}>
-                        {item.wears.length} WEAR{item.wears.length !== 1 ? "S" : ""} · COST BASIS ${item.price}
+                        {item.wears.length} WEAR{item.wears.length !== 1 ? "S" : ""} · COST BASIS {symbol}{item.price}
                       </Text>
                     </View>
                     <View style={{ alignItems: "flex-end", gap: 4 }}>
                       <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 15, color: Colors.cpw }}>
-                        ${item.cpw.toFixed(2)}
+                        {symbol}{item.cpw.toFixed(2)}
                       </Text>
                       <TierBadge cpw={item.cpw} />
                     </View>
@@ -231,11 +233,11 @@ export default function Stats() {
                       {item.name}
                     </Text>
                     <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 0.5, marginTop: 1 }}>
-                      {item.wears.length} WEAR{item.wears.length !== 1 ? "S" : ""} · COST BASIS ${item.price}
+                      {item.wears.length} WEAR{item.wears.length !== 1 ? "S" : ""} · COST BASIS {symbol}{item.price}
                     </Text>
                   </View>
                   <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 15, color: Colors.cpw }}>
-                    ${item.cpw.toFixed(2)}
+                    {symbol}{item.cpw.toFixed(2)}
                   </Text>
                 </View>
               ))}

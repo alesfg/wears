@@ -14,6 +14,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { useItemStore } from "@/store/itemStore";
 import { useUserStore } from "@/store/userStore";
+import { useCurrencyStore } from "@/store/currencyStore";
 import { usePaywall } from "@/hooks/usePaywall";
 import { DashedLine } from "@/components/ui/DashedLine";
 import { TierBadge } from "@/components/ui/TierBadge";
@@ -43,6 +44,7 @@ function TickerTab({
 }: {
   item: ItemWithWears; isPro: boolean; onUpgrade: () => void;
 }) {
+  const symbol = useCurrencyStore((s) => s.symbol);
   const tierIdx = TIERS.findIndex((t) => t.name === getTier(item.cpw));
   const nextTier = TIERS[tierIdx + 1];
   const progress = calcProgress(item.cpw, item.price);
@@ -57,7 +59,7 @@ function TickerTab({
           {t("costPerWear")}
         </Text>
         <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 68, color: Colors.cpw, lineHeight: 76 }}>
-          ${item.cpw.toFixed(2)}
+          {symbol}{item.cpw.toFixed(2)}
         </Text>
       </View>
 
@@ -68,7 +70,7 @@ function TickerTab({
         </View>
         <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1, textAlign: "center" }}>
           {item.wears.length} {t("wears")}
-          {nextTier ? ` ${t("nextTierPrefix")} ${nextTier.name.toUpperCase()} AT $${nextTier.maxCpw}${t("perWearShort")}` : ` ${t("freeBascially")}`}
+          {nextTier ? ` ${t("nextTierPrefix")} ${nextTier.name.toUpperCase()} AT ${symbol}${nextTier.maxCpw}${t("perWearShort")}` : ` ${t("freeBascially")}`}
         </Text>
       </View>
 
@@ -77,8 +79,8 @@ function TickerTab({
       {/* Stats row */}
       <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 20 }}>
         <StatCell label={t("wears")} value={`${item.wears.length}×`} />
-        <StatCell label={t("spent")} value={`$${item.price}`} />
-        <StatCell label={t("savedVsNew")} value={`$${savedVsNew.toFixed(0)}`} />
+        <StatCell label={t("spent")} value={`${symbol}${item.price}`} />
+        <StatCell label={t("savedVsNew")} value={`${symbol}${savedVsNew.toFixed(0)}`} />
       </View>
 
       <DashedLine />
@@ -114,7 +116,7 @@ function TickerTab({
                 {isPro ? "SHARE RECEIPT" : "★ PRO · SHARE RECEIPT"}
               </Text>
               <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 14, color: Colors.ink }}>
-                {isPro ? "Send this receipt." : `$${item.cpw.toFixed(2)}/wear. Make them understand.`}
+                {isPro ? "Send this receipt." : `${symbol}${item.cpw.toFixed(2)}/wear. Make them understand.`}
               </Text>
             </View>
             <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: isPro ? Colors.cpw : Colors.muted }}>
@@ -129,6 +131,7 @@ function TickerTab({
 
 // ─── Progress tab ─────────────────────────────────────────────────────────────
 function ProgressTab({ item }: { item: ItemWithWears }) {
+  const symbol = useCurrencyStore((s) => s.symbol);
   const currentTier = getTier(item.cpw);
   const tierIdx = TIERS.findIndex((t) => t.name === currentTier);
   const savedVsNew = Math.max(0, item.price - item.cpw * item.wears.length);
@@ -147,7 +150,7 @@ function ProgressTab({ item }: { item: ItemWithWears }) {
             {currentTier}
           </Text>
           <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 24, color: Colors.cpw }}>
-            ${item.cpw.toFixed(2)}
+            {symbol}{item.cpw.toFixed(2)}
           </Text>
         </View>
       </View>
@@ -212,7 +215,7 @@ function ProgressTab({ item }: { item: ItemWithWears }) {
                       color: current ? Colors.cpw : achieved ? Colors.ink : Colors.muted,
                     }}
                   >
-                    {tier.maxCpw === Infinity ? "> $80/wear" : `≤ $${tier.maxCpw}/wear`}
+                    {tier.maxCpw === Infinity ? `> ${symbol}80/wear` : `≤ ${symbol}${tier.maxCpw}/wear`}
                   </Text>
                 </View>
               </View>
@@ -226,8 +229,8 @@ function ProgressTab({ item }: { item: ItemWithWears }) {
       {/* Stats */}
       <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 20 }}>
         <StatCell label={t("wears")} value={`${item.wears.length}×`} />
-        <StatCell label={t("spent")} value={`$${item.price}`} />
-        <StatCell label={t("savedVsNew")} value={`$${savedVsNew.toFixed(0)}`} />
+        <StatCell label={t("spent")} value={`${symbol}${item.price}`} />
+        <StatCell label={t("savedVsNew")} value={`${symbol}${savedVsNew.toFixed(0)}`} />
       </View>
     </View>
   );
@@ -235,6 +238,7 @@ function ProgressTab({ item }: { item: ItemWithWears }) {
 
 // ─── Log tab ─────────────────────────────────────────────────────────────────
 function LogTab({ item }: { item: ItemWithWears }) {
+  const symbol = useCurrencyStore((s) => s.symbol);
   const wearsAsc = useMemo(
     () => [...item.wears].sort((a, b) => new Date(a.worn_at).getTime() - new Date(b.worn_at).getTime()),
     [item.wears]
@@ -247,10 +251,10 @@ function LogTab({ item }: { item: ItemWithWears }) {
       {/* Receipt header */}
       <View style={{ paddingBottom: 16 }}>
         <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5 }}>
-          COST ${item.price} · WEARS {item.wears.length} · CPW ${item.cpw.toFixed(2)}
+          {t("logHeaderSummary", { symbol, price: String(item.price), wears: String(item.wears.length), cpw: item.cpw.toFixed(2) })}
         </Text>
         <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1, marginTop: 4 }}>
-          LOG {item.name.toUpperCase()} SINCE {acquired.toUpperCase()}
+          {t("logSinceLine", { name: item.name.toUpperCase(), date: acquired.toUpperCase() })}
         </Text>
       </View>
 
@@ -289,7 +293,7 @@ function LogTab({ item }: { item: ItemWithWears }) {
                   {wear.occasion ?? "—"}
                 </Text>
                 <Text style={[rowText, { flex: 3, textAlign: "right", color: Colors.cpw }]}>
-                  ${cpwThen}
+                  {symbol}{cpwThen}
                 </Text>
               </View>
             );
@@ -303,7 +307,7 @@ function LogTab({ item }: { item: ItemWithWears }) {
           <View style={{ flexDirection: "row", justifyContent: "space-between", paddingBottom: 16 }}>
             <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted }}>{t("netCpw")}</Text>
             <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 16, color: Colors.cpw }}>
-              ${item.cpw.toFixed(2)}
+              {symbol}{item.cpw.toFixed(2)}
             </Text>
           </View>
           <DashedLine />
@@ -322,13 +326,17 @@ export default function ItemDetail() {
   const router = useRouter();
   const { user } = useUserStore();
   const { isPro } = usePaywall();
-  const { items, logWear } = useItemStore();
+  const { items, logWear, deleteItem } = useItemStore();
+  const symbol = useCurrencyStore((s) => s.symbol);
 
   const item = useMemo(() => items.find((i) => i.id === id), [items, id]);
   const [activeTab, setActiveTab] = useState<Tab>("ticker");
   const [showOccasionPicker, setShowOccasionPicker] = useState(false);
   const [logging, setLogging] = useState(false);
   const [woreItCard, setWoreItCard] = useState<{ newCpw: number; wears: number } | null>(null);
+  const [showItemMenu, setShowItemMenu] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   if (!item) {
     return (
@@ -363,6 +371,15 @@ export default function ItemDetail() {
 
   const acquiredLabel = `${new Date(item.purchased_at).toLocaleString("en-US", { month: "short" }).toUpperCase()} ${new Date(item.purchased_at).getFullYear()}`;
 
+  const handleDelete = async () => {
+    setDeleting(true);
+    await deleteItem(item.id);
+    posthog.capture(Events.FEATURE_USED, { feature: "delete_item", item_id: item.id });
+    setDeleting(false);
+    setShowDeleteConfirm(false);
+    router.back();
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.cream }} edges={["top"]}>
       {/* Nav bar */}
@@ -373,7 +390,7 @@ export default function ItemDetail() {
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => router.push({ pathname: "/modal/share", params: { id: item.id } })}
+          onPress={() => setShowItemMenu(true)}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         >
           <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.ink, letterSpacing: 0.5 }}>···</Text>
@@ -384,7 +401,9 @@ export default function ItemDetail() {
         {/* Photo */}
         <View style={{ width, height: width, position: "relative" }}>
           {item.image_url ? (
-            <Image source={{ uri: item.image_url }} style={{ width, height: width }} resizeMode="cover" />
+            <View style={{ width, height: width, backgroundColor: "#E8E2D8" }}>
+              <Image source={{ uri: item.image_url }} style={{ width: "100%", height: "100%" }} resizeMode="contain" />
+            </View>
           ) : (
             <View style={{ width, height: width, backgroundColor: "#E8E2D8", justifyContent: "flex-end", padding: 16 }}>
               {item.category && (
@@ -527,7 +546,7 @@ export default function ItemDetail() {
                 {woreItCard?.wears}× worn
               </Text>
               <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 64, color: Colors.cpw, textAlign: "center", lineHeight: 72 }}>
-                ${woreItCard?.newCpw.toFixed(2)}
+                {symbol}{woreItCard?.newCpw.toFixed(2)}
               </Text>
               <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, textAlign: "center", letterSpacing: 2, textTransform: "uppercase", marginBottom: 24 }}>
                 COST PER WEAR
@@ -538,17 +557,98 @@ export default function ItemDetail() {
                 activeOpacity={0.85}
               >
                 <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.cream, letterSpacing: 2, textTransform: "uppercase" }}>
-                  Share the receipt →
+                  {t("shareReceiptCta")}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={() => setWoreItCard(null)} style={{ paddingVertical: 10, alignItems: "center" }}>
                 <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>
-                  Done
+                  {t("doneCta")}
                 </Text>
               </TouchableOpacity>
             </View>
           </Pressable>
         </Pressable>
+      </Modal>
+
+      {/* Item menu: share / delete */}
+      <Modal visible={showItemMenu} transparent animationType="fade" onRequestClose={() => setShowItemMenu(false)}>
+        <Pressable style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" }} onPress={() => setShowItemMenu(false)}>
+          <Pressable onPress={() => {}}>
+            <View style={{ backgroundColor: Colors.cream, paddingHorizontal: 20, paddingTop: 8, paddingBottom: 36, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowItemMenu(false);
+                  router.push({ pathname: "/modal/share", params: { id: item.id } });
+                }}
+                style={{ paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: Colors.border }}
+                activeOpacity={0.7}
+              >
+                <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 13, color: Colors.ink, textAlign: "center", letterSpacing: 0.5 }}>
+                  {t("shareAction")}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowItemMenu(false);
+                  setShowDeleteConfirm(true);
+                }}
+                style={{ paddingVertical: 16 }}
+                activeOpacity={0.7}
+              >
+                <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 13, color: "#C4503A", textAlign: "center", letterSpacing: 0.5 }}>
+                  {t("deleteItemAction")}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setShowItemMenu(false)}
+                style={{ paddingVertical: 16, marginTop: 4 }}
+                activeOpacity={0.7}
+              >
+                <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 13, color: Colors.muted, textAlign: "center", letterSpacing: 0.5 }}>
+                  {t("cancelAction")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* Delete confirmation */}
+      <Modal visible={showDeleteConfirm} transparent animationType="fade" onRequestClose={() => setShowDeleteConfirm(false)}>
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.4)" }}>
+          <View style={{ backgroundColor: Colors.cream, width: "82%", padding: 24, borderWidth: 1, borderColor: Colors.border }}>
+            <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 20, color: Colors.ink, textAlign: "center", marginBottom: 8 }}>
+              {t("deleteItemTitle")}
+            </Text>
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.muted, textAlign: "center", lineHeight: 17, marginBottom: 20 }}>
+              {t("deleteItemMsg")}
+            </Text>
+            <TouchableOpacity
+              onPress={handleDelete}
+              disabled={deleting}
+              style={{ backgroundColor: "#C4503A", paddingVertical: 14, alignItems: "center", marginBottom: 10 }}
+              activeOpacity={0.85}
+            >
+              {deleting ? (
+                <ActivityIndicator color={Colors.cream} />
+              ) : (
+                <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.cream, letterSpacing: 1.5, textTransform: "uppercase" }}>
+                  {t("deleteItemAction")}
+                </Text>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setShowDeleteConfirm(false)}
+              disabled={deleting}
+              style={{ paddingVertical: 10, alignItems: "center" }}
+              activeOpacity={0.7}
+            >
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.muted, letterSpacing: 1 }}>
+                {t("cancelAction")}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </Modal>
     </SafeAreaView>
   );

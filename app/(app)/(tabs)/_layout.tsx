@@ -5,16 +5,19 @@ import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Colors } from "@/constants/theme";
 import { posthog, Events } from "@/lib/posthog";
+import { t } from "@/lib/i18n";
 
 const TAB_HEIGHT = 68;
 const CENTER_SIZE = 58;
 
-const TAB_LABELS: Record<string, string> = {
-  index:    "CLOSET",
-  calendar: "CALENDAR",
-  wishlist: "WISHLIST",
-  me:       "ME",
-};
+function tabLabels(): Record<string, string> {
+  return {
+    index:    t("tabCloset"),
+    calendar: t("tabCalendar"),
+    wishlist: t("tabWishlist"),
+    me:       t("tabMe"),
+  };
+}
 
 function TabIcon({ name, size, color }: { name: string; size: number; color: string }) {
   if (name === "index")
@@ -31,6 +34,7 @@ function TabItem({
   routeName: string; focused: boolean; onPress: () => void;
 }) {
   const color = focused ? Colors.ink : Colors.muted;
+  const label = tabLabels()[routeName];
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -47,7 +51,7 @@ function TabItem({
           marginTop: 4,
         }}
       >
-        {TAB_LABELS[routeName]}
+        {label}
       </Text>
       {/* Active dot — always in layout so items don't shift */}
       <View
@@ -64,6 +68,7 @@ function TabItem({
 function CustomTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const TAB_LABELS = tabLabels();
 
   const visibleRoutes = state.routes.filter((r) => TAB_LABELS[r.name] !== undefined);
   const leftRoutes  = visibleRoutes.slice(0, 2);

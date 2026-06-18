@@ -13,6 +13,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { useWatchlistStore } from "@/store/watchlistStore";
 import { useUserStore } from "@/store/userStore";
+import { useCurrencyStore } from "@/store/currencyStore";
 import { DashedLine } from "@/components/ui/DashedLine";
 import { Colors } from "@/constants/theme";
 import { CATEGORIES } from "@/constants/config";
@@ -36,6 +37,7 @@ export default function AddWatchlistItem() {
   const router = useRouter();
   const { user } = useUserStore();
   const { addItem } = useWatchlistStore();
+  const symbol = useCurrencyStore((s) => s.symbol);
 
   const [name, setName] = useState("");
   const [brand, setBrand] = useState("");
@@ -133,7 +135,7 @@ export default function AddWatchlistItem() {
           </Field>
 
           {/* Price */}
-          <Field label={t("costBasisField")}>
+          <Field label={t("costBasisField", { symbol })}>
             <TextInput
               value={price}
               onChangeText={setPrice}

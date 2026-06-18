@@ -1,6 +1,7 @@
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 import { getTier } from "@/constants/config";
+import { t } from "@/lib/i18n";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -27,10 +28,11 @@ export async function scheduleTierMilestoneNotification(
     if (status !== "granted") return;
 
     const tier = getTier(cpw);
+    const vars = { item: itemName, wears: String(wears), cpw: cpw.toFixed(2) };
     const tierMessages: Partial<Record<ReturnType<typeof getTier>, string>> = {
-      workhorse:      `${itemName} just hit Workhorse. ${wears} wears, $${cpw.toFixed(2)}/wear.`,
-      normal:         `${itemName} dropped to Normal tier — $${cpw.toFixed(2)}/wear.`,
-      "free basically": `${itemName} is basically free — $${cpw.toFixed(2)}/wear. 🌸`,
+      workhorse:        t("notifTierWorkhorse", vars),
+      normal:           t("notifTierNormal", vars),
+      "free basically": t("notifTierFreeBasically", vars),
     };
 
     const body = tierMessages[tier];
@@ -38,7 +40,7 @@ export async function scheduleTierMilestoneNotification(
 
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: "Tier unlocked ★",
+        title: t("notifTierUnlockedTitle"),
         body,
         data: {},
       },
@@ -68,8 +70,8 @@ export async function scheduleDailyReminder(): Promise<boolean> {
   await Notifications.scheduleNotificationAsync({
     identifier: DAILY_REMINDER_ID,
     content: {
-      title: "What are you wearing today?",
-      body: "Log it before you forget — every wear drops your cost per wear.",
+      title: t("notifDailyTitle"),
+      body: t("notifDailyBody"),
       data: {},
     },
     trigger: {

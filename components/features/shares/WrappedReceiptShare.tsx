@@ -1,5 +1,7 @@
 import { View, Text } from "react-native";
 import type { ItemWithWears } from "@/lib/database.types";
+import { useCurrencyStore } from "@/store/currencyStore";
+import { t } from "@/lib/i18n";
 
 interface Props {
   name: string;
@@ -64,12 +66,13 @@ function Barcode() {
   );
 }
 
-function cpwStr(val: number): string {
-  if (val >= 100 && Number.isInteger(val)) return `$${val}`;
-  return `$${val.toFixed(2)}`;
+function cpwStr(val: number, symbol: string): string {
+  if (val >= 100 && Number.isInteger(val)) return `${symbol}${val}`;
+  return `${symbol}${val.toFixed(2)}`;
 }
 
 export function WrappedReceiptShare({ name, year, pieces, totalWears, blendedCpw, mostProfitable, busiestMonth }: Props) {
+  const symbol = useCurrencyStore((s) => s.symbol);
   return (
     <View style={{ width: CANVAS_W, backgroundColor: "#111111", alignItems: "center", paddingVertical: 48 }}>
       {/* Receipt card */}
@@ -95,26 +98,26 @@ export function WrappedReceiptShare({ name, year, pieces, totalWears, blendedCpw
             Wears
           </Text>
           <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 8, color: "#8A8070", textAlign: "center", letterSpacing: 2.5, textTransform: "uppercase", marginBottom: 2 }}>
-            ANNUAL EARNINGS REPORT &apos;{year}
+            {t("shareAnnualReport")} &apos;{year}
           </Text>
           <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 8, color: "#8A8070", textAlign: "center", letterSpacing: 1.5, marginBottom: 14 }}>
-            SHAREHOLDER · {name.toUpperCase()}
+            {t("shareShareholder")} · {name.toUpperCase()}
           </Text>
 
           <DotLine />
 
           {/* Summary rows */}
           <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 5, marginTop: 12 }}>
-            <Text style={mono}>PIECES</Text>
+            <Text style={mono}>{t("sharePiecesRow")}</Text>
             <Text style={mono}>{pieces}</Text>
           </View>
           <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 5 }}>
-            <Text style={mono}>WEARS LOGGED</Text>
+            <Text style={mono}>{t("shareWearsLoggedRow")}</Text>
             <Text style={mono}>{totalWears}</Text>
           </View>
           {busiestMonth && (
             <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 5 }}>
-              <Text style={mono}>BUSIEST MONTH</Text>
+              <Text style={mono}>{t("shareBusiestMonth")}</Text>
               <Text style={mono}>{busiestMonth[0].slice(0, 3).toUpperCase()} · {busiestMonth[1]}×</Text>
             </View>
           )}
@@ -125,13 +128,13 @@ export function WrappedReceiptShare({ name, year, pieces, totalWears, blendedCpw
           {mostProfitable && (
             <>
               <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 8, color: "#8A8070", textAlign: "center", letterSpacing: 2, marginTop: 12, marginBottom: 4 }}>
-                MVP OF THE YEAR
+                {t("shareMvpOfYear")}
               </Text>
               <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 20, color: "#1A1A1A", textAlign: "center", marginBottom: 2 }} numberOfLines={1}>
                 {mostProfitable.name}
               </Text>
               <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 8, color: "#8A8070", textAlign: "center", letterSpacing: 1.5, marginBottom: 12 }}>
-                {mostProfitable.wears.length}× WORN · {cpwStr(mostProfitable.cpw)}/WEAR
+                {mostProfitable.wears.length}× {t("shareWornLabel")} · {cpwStr(mostProfitable.cpw, symbol)}{t("sharePerWearCaps")}
               </Text>
 
               <DotLine />
@@ -140,15 +143,15 @@ export function WrappedReceiptShare({ name, year, pieces, totalWears, blendedCpw
 
           {/* Net CPW */}
           <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 8, color: "#8A8070", textAlign: "center", letterSpacing: 2, marginTop: 12, marginBottom: 2 }}>
-            BLENDED COST PER WEAR
+            {t("shareBlendedCpw")}
           </Text>
           <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 52, color: "#C4503A", textAlign: "center", lineHeight: 60 }}>
-            {cpwStr(blendedCpw)}
+            {cpwStr(blendedCpw, symbol)}
           </Text>
 
           {blendedCpw > 0 && blendedCpw <= 25 && (
             <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 8, color: "#1A1A1A", textAlign: "center", letterSpacing: 2, marginBottom: 12 }}>
-              ※ STATUS: PROFITABLE ※
+              {t("shareProfitableStatus")}
             </Text>
           )}
 
@@ -169,7 +172,7 @@ export function WrappedReceiptShare({ name, year, pieces, totalWears, blendedCpw
 
       {/* Canvas footer */}
       <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: 2, textAlign: "center", marginTop: 20 }}>
-        cost basis: justified · @ wears
+        {t("shareCostBasisJustified")}
       </Text>
     </View>
   );

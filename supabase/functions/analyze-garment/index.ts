@@ -7,15 +7,26 @@ const CORS = {
 
 const CATEGORIES = ['outerwear', 'knitwear', 'denim', 'tops', 'dresses', 'skirts', 'pants', 'shoes', 'bags', 'accessories']
 
-const PROMPT = `You are analyzing a clothing item photo for a wardrobe tracking app.
+function buildPrompt(locale: string): string {
+  const es = locale === 'es'
+  const nameExamples = es
+    ? `'Blazer Negro de Lana', 'Vestido Midi Floral', 'Tenis Blancos'`
+    : `'Black Wool Blazer', 'Floral Midi Dress', 'White Sneakers'`
+  const languageLine = es
+    ? 'Write the "name" and "color" field values in Spanish.'
+    : 'Write the "name" and "color" field values in English.'
+
+  return `You are analyzing a clothing item photo for a wardrobe tracking app.
 Return ONLY a valid JSON object — no explanation, no markdown, just JSON.
+${languageLine}
 
 {
-  "name": "short descriptive name (e.g. 'Black Wool Blazer', 'Floral Midi Dress', 'White Sneakers')",
+  "name": "short descriptive name (e.g. ${nameExamples})",
   "brand": "brand name if clearly visible on label, tag, or logo — otherwise null",
-  "category": one of exactly: "outerwear"|"knitwear"|"denim"|"tops"|"dresses"|"skirts"|"pants"|"shoes"|"bags"|"accessories" — pick the closest match, never null,
+  "category": one of exactly: "outerwear"|"knitwear"|"denim"|"tops"|"dresses"|"skirts"|"pants"|"shoes"|"bags"|"accessories" — pick the closest match, never null (always in English, regardless of the language above),
   "color": "primary color in one or two words"
 }`
+}
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -39,7 +50,7 @@ Deno.serve(async (req) => {
     const { error: authError } = await supabase.auth.getUser()
     if (authError) return json({ error: 'Unauthorized' }, 401)
 
-    const { imageBase64, mimeType = 'image/jpeg' } = await req.json()
+    const { imageBase64, mimeType = 'image/jpeg', locale = 'en' } = await req.json()
     if (!imageBase64) return json({ result: null })
 
     const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -56,7 +67,7 @@ Deno.serve(async (req) => {
           role: 'user',
           content: [
             { type: 'image', source: { type: 'base64', media_type: mimeType, data: imageBase64 } },
-            { type: 'text', text: PROMPT },
+            { type: 'text', text: buildPrompt(locale) },
           ],
         }],
       }),

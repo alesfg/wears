@@ -15,20 +15,25 @@ import {
   getProjectedCpw,
   getVerdict,
   VERDICT_COLORS,
-  VERDICT_TEXTS,
+  type WatchlistStatus,
 } from "@/store/watchlistStore";
 import { useItemStore } from "@/store/itemStore";
+import { useCurrencyStore } from "@/store/currencyStore";
 import { DashedLine } from "@/components/ui/DashedLine";
+import { t } from "@/lib/i18n";
+
+function verdictText(status: WatchlistStatus): string {
+  switch (status) {
+    case "BUY": return t("verdictBuy");
+    case "STRETCH": return t("verdictStretch");
+    case "WAIT": return t("verdictWait");
+    case "SKIP": return t("verdictSkip");
+  }
+}
 
 const SLIDER_MIN = 1;
 const SLIDER_MAX = 500;
-const TICKS = [
-  { value: 1, label: "1× ONCE" },
-  { value: 50, label: "50×" },
-  { value: 150, label: "150×" },
-  { value: 300, label: "300×" },
-  { value: 500, label: "500×" },
-];
+const TICKS = [1, 50, 150, 300, 500];
 
 function clamp(v: number, lo: number, hi: number) {
   return Math.max(lo, Math.min(hi, v));
@@ -118,7 +123,7 @@ function WatchlistSlider({
       <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 2 }}>
         {TICKS.map((tick) => (
           <Text
-            key={tick.value}
+            key={tick}
             style={{
               fontFamily: "DMSans_400Regular",
               fontSize: 8,
@@ -126,7 +131,7 @@ function WatchlistSlider({
               letterSpacing: 0.5,
             }}
           >
-            {tick.label}
+            {tick === 1 ? `1× ${t("watchlistOnce")}` : `${tick}×`}
           </Text>
         ))}
       </View>
@@ -143,6 +148,7 @@ function ComparisonRow({
   cpw: number;
   last: boolean;
 }) {
+  const symbol = useCurrencyStore((s) => s.symbol);
   return (
     <>
       <View
@@ -169,7 +175,7 @@ function ComparisonRow({
             color: Colors.ink,
           }}
         >
-          ${cpw.toFixed(2)}
+          {symbol}{cpw.toFixed(2)}
         </Text>
       </View>
       {!last && (
@@ -184,6 +190,7 @@ export default function ShouldIBuy() {
   const router = useRouter();
   const { items: watchlistItems } = useWatchlistStore();
   const { items: closetItems } = useItemStore();
+  const symbol = useCurrencyStore((s) => s.symbol);
 
   const item = useMemo(() => watchlistItems.find((i) => i.id === id), [watchlistItems, id]);
   const [wears, setWears] = useState(item?.projectedWears ?? 50);
@@ -191,7 +198,7 @@ export default function ShouldIBuy() {
   const projCpw = item ? getProjectedCpw(item.price, wears) : 0;
   const verdict = getVerdict(projCpw);
   const verdictColor = VERDICT_COLORS[verdict];
-  const verdictText = VERDICT_TEXTS[verdict];
+  const verdictMsg = verdictText(verdict);
 
   const comparisonItems = useMemo(() => {
     if (closetItems.length === 0) return [];
@@ -240,7 +247,7 @@ export default function ShouldIBuy() {
             textTransform: "uppercase",
           }}
         >
-          SHOULD · I · BUY?
+          {t("watchlistShouldIBuy")}
         </Text>
 
         <View style={{ width: 20 }} />
@@ -285,7 +292,7 @@ export default function ShouldIBuy() {
                   textTransform: "uppercase",
                 }}
               >
-                {item.brand} · ${item.price.toLocaleString("en-US")} · {item.category}
+                {item.brand} · {symbol}{item.price.toLocaleString("en-US")} · {item.category}
               </Text>
             </View>
           </View>
@@ -303,7 +310,7 @@ export default function ShouldIBuy() {
               marginBottom: 8,
             }}
           >
-            HOW · MANY · TIMES · WILL · YOU · WEAR · IT?
+            {t("watchlistHowManyTimes")}
           </Text>
 
           {/* Large wears count */}
@@ -327,7 +334,7 @@ export default function ShouldIBuy() {
                 marginBottom: 10,
               }}
             >
-              wears
+              {t("shareWearsLower")}
             </Text>
           </View>
 
@@ -354,7 +361,7 @@ export default function ShouldIBuy() {
                 textTransform: "uppercase",
               }}
             >
-              PROJECTED · CPW
+              {t("watchlistProjectedCpw")}
             </Text>
 
             {/* Verdict badge */}
@@ -389,7 +396,7 @@ export default function ShouldIBuy() {
               marginBottom: 8,
             }}
           >
-            ${projCpw.toFixed(2)}
+            {symbol}{projCpw.toFixed(2)}
           </Text>
 
           {/* Verdict text */}
@@ -401,7 +408,7 @@ export default function ShouldIBuy() {
               marginBottom: 28,
             }}
           >
-            {verdictText}
+            {verdictMsg}
           </Text>
 
           {/* Comparison section */}
@@ -417,7 +424,7 @@ export default function ShouldIBuy() {
                   marginBottom: 4,
                 }}
               >
-                YOUR · CLOSET · FOR · COMPARISON
+                {t("watchlistClosetComparison")}
               </Text>
 
               <View style={{ borderTopWidth: 1, borderTopColor: Colors.border }}>
@@ -449,7 +456,7 @@ export default function ShouldIBuy() {
                   marginBottom: 12,
                 }}
               >
-                YOUR · CLOSET · FOR · COMPARISON
+                {t("watchlistClosetComparison")}
               </Text>
               <Text
                 style={{
@@ -458,7 +465,7 @@ export default function ShouldIBuy() {
                   color: Colors.muted,
                 }}
               >
-                Add items to your closet to see how this compares.
+                {t("watchlistAddItemsCompare")}
               </Text>
             </View>
           )}
@@ -502,7 +509,7 @@ export default function ShouldIBuy() {
               letterSpacing: 0.3,
             }}
           >
-            Add to wishlist
+            {t("watchlistAddToWishlistBtn")}
           </Text>
         </TouchableOpacity>
 
@@ -525,7 +532,7 @@ export default function ShouldIBuy() {
               letterSpacing: 0.3,
             }}
           >
-            Sleep on it
+            {t("watchlistSleepOnIt")}
           </Text>
         </TouchableOpacity>
       </View>

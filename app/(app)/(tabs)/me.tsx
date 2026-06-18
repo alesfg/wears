@@ -14,6 +14,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Feather } from "@expo/vector-icons";
 import { useUserStore } from "@/store/userStore";
 import { useItemStore } from "@/store/itemStore";
+import { useCurrencyStore, type CurrencySymbol } from "@/store/currencyStore";
 import { usePaywall } from "@/hooks/usePaywall";
 import { useAuth } from "@/hooks/useAuth";
 import { Colors } from "@/constants/theme";
@@ -113,6 +114,50 @@ function SwitchRow({
           trackColor={{ false: Colors.border, true: Colors.cpw }}
           thumbColor="#FFFFFF"
         />
+      </View>
+      {!last && <View style={{ height: 1, backgroundColor: Colors.border, marginLeft: 16 }} />}
+    </>
+  );
+}
+
+function CurrencyRow({
+  label, value, onChange, last,
+}: {
+  label: string; value: CurrencySymbol; onChange: (v: CurrencySymbol) => void; last?: boolean;
+}) {
+  return (
+    <>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          paddingHorizontal: 16,
+          paddingVertical: 14,
+          minHeight: 52,
+          backgroundColor: SECTION_BG,
+        }}
+      >
+        <Text style={{ flex: 1, fontFamily: "DMSans_400Regular", fontSize: 15, color: Colors.ink }}>
+          {label}
+        </Text>
+        <View style={{ flexDirection: "row", borderWidth: 1, borderColor: Colors.border }}>
+          {(["$", "€"] as CurrencySymbol[]).map((sym) => (
+            <TouchableOpacity
+              key={sym}
+              onPress={() => onChange(sym)}
+              style={{
+                paddingHorizontal: 16,
+                paddingVertical: 6,
+                backgroundColor: value === sym ? Colors.ink : "transparent",
+              }}
+              activeOpacity={0.7}
+            >
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 14, color: value === sym ? Colors.cream : Colors.muted }}>
+                {sym}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
       {!last && <View style={{ height: 1, backgroundColor: Colors.border, marginLeft: 16 }} />}
     </>
@@ -332,6 +377,8 @@ export default function Me() {
     getReferralStats(user.id).then((s) => { if (s) setReferralUses(s.uses); });
   }, [user?.id]);
 
+  const { symbol: currencySymbol, setSymbol: setCurrencySymbol } = useCurrencyStore();
+
   const [dailyReminder, setDailyReminder] = useState(false);
 
   useEffect(() => {
@@ -472,6 +519,20 @@ export default function Me() {
           </>
         )}
 
+        {/* PREFERENCES */}
+        <SectionLabel title={t("preferences")} />
+        <View style={{ marginHorizontal: 20, borderWidth: 1, borderColor: Colors.border, backgroundColor: SECTION_BG }}>
+          <CurrencyRow
+            label={t("currency")}
+            value={currencySymbol}
+            onChange={(sym) => {
+              setCurrencySymbol(sym);
+              posthog.capture(Events.FEATURE_USED, { feature: "currency_changed", symbol: sym });
+            }}
+            last
+          />
+        </View>
+
         {/* NOTIFICATIONS */}
         <SectionLabel title={t("notifications")} />
         <View style={{ marginHorizontal: 20, borderWidth: 1, borderColor: Colors.border, backgroundColor: SECTION_BG }}>
@@ -500,22 +561,32 @@ export default function Me() {
           />
         </View>
 
+        {/* ABOUT */}
+        <View style={{ marginHorizontal: 20, marginTop: 12, borderWidth: 1, borderColor: Colors.border, backgroundColor: SECTION_BG }}>
+          <SettingRow
+            label={t("howItWorks")}
+            onPress={() => router.push("/(app)/about" as never)}
+            value=""
+            last
+          />
+        </View>
+
         {/* INVITE */}
         {referralCode && (
           <>
-            <SectionLabel title="INVITE A FRIEND" />
+            <SectionLabel title={t("inviteFriendTitle")} />
             <View style={{ marginHorizontal: 20, borderWidth: 1, borderColor: Colors.border, backgroundColor: SECTION_BG, padding: 16 }}>
               <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 12, color: Colors.ink, marginBottom: 4 }}>
-                Invite a friend — both get +2 free slots.
+                {t("inviteFriendBody")}
               </Text>
               <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, marginBottom: 14 }}>
-                {referralUses} friend{referralUses !== 1 ? "s" : ""} joined so far.
+                {t(referralUses !== 1 ? "inviteFriendCountPlural" : "inviteFriendCountSingular", { n: String(referralUses) })}
               </Text>
               <TouchableOpacity
                 onPress={async () => {
                   try {
                     await Share.share({
-                      message: `Track your closet like a portfolio. Download Wears and use my code ${referralCode} — we both get 2 extra slots free. wears.app`,
+                      message: t("inviteShareMessage", { code: referralCode }),
                     });
                   } catch { /* ignore */ }
                 }}
@@ -523,7 +594,7 @@ export default function Me() {
                 activeOpacity={0.85}
               >
                 <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 13, color: Colors.cream, letterSpacing: 0.5 }}>
-                  Share code · <Text style={{ color: Colors.cpw }}>{referralCode}</Text>
+                  {t("shareCodeCta")} · <Text style={{ color: Colors.cpw }}>{referralCode}</Text>
                 </Text>
                 <Feather name="share" size={14} color={Colors.cream} />
               </TouchableOpacity>
@@ -573,7 +644,7 @@ export default function Me() {
                 color: deleting ? Colors.muted : "#C0392B",
               }}
             >
-              {deleting ? "Deleting…" : t("deleteAccount")}
+              {deleting ? t("deletingLabel") : t("deleteAccount")}
             </Text>
           </TouchableOpacity>
         </View>

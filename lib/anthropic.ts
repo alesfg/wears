@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { CATEGORIES } from '@/constants/config'
+import { locale } from '@/lib/i18n'
 
 type Category = (typeof CATEGORIES)[number]
 
@@ -16,7 +17,7 @@ export async function analyzeGarment(
 ): Promise<GarmentAnalysis | null> {
   try {
     const { data, error } = await supabase.functions.invoke('analyze-garment', {
-      body: { imageBase64, mimeType },
+      body: { imageBase64, mimeType, locale },
     })
     if (error || !data?.result) return null
     return data.result as GarmentAnalysis

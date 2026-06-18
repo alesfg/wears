@@ -13,6 +13,7 @@ import { configureRevenueCat } from "@/lib/revenuecat";
 import { setupNotificationChannel, requestNotificationPermission } from "@/lib/notifications";
 import { posthog, Events } from "@/lib/posthog";
 import { usePaywall } from "@/hooks/usePaywall";
+import { useCurrencyStore } from "@/store/currencyStore";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -56,6 +57,10 @@ export default function RootLayout() {
     if (loaded || error) SplashScreen.hideAsync();
   }, [loaded, error]);
 
+  useEffect(() => {
+    useCurrencyStore.getState().init();
+  }, []);
+
   if (!loaded && !error) return null;
 
   return (
@@ -71,6 +76,7 @@ export default function RootLayout() {
           <Stack.Screen name="modal/share" options={{ presentation: "modal" }} />
           <Stack.Screen name="modal/paywall" options={{ presentation: "modal" }} />
           <Stack.Screen name="modal/wrapped" options={{ presentation: "fullScreenModal", animation: "fade" }} />
+          <Stack.Screen name="modal/log-wear" options={{ presentation: "fullScreenModal", animation: "fade" }} />
         </Stack>
       </SafeAreaProvider>
     </GestureHandlerRootView>

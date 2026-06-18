@@ -20,7 +20,7 @@ export function isProfitable(cpw: number): boolean {
   return cpw <= 25;
 }
 
-export const FREE_TIER_ITEM_LIMIT = 5;
+export const FREE_TIER_ITEM_LIMIT = 30;
 
 export const OCCASIONS = [
   "office",

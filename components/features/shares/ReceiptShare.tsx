@@ -1,6 +1,8 @@
 import { View, Text } from "react-native";
 import { useMemo } from "react";
 import type { ItemWithWears } from "@/lib/database.types";
+import { useCurrencyStore } from "@/store/currencyStore";
+import { t, locale } from "@/lib/i18n";
 
 interface Props {
   item: ItemWithWears;
@@ -61,13 +63,14 @@ function Barcode() {
 }
 
 export function ReceiptShare({ item, username }: Props) {
+  const symbol = useCurrencyStore((s) => s.symbol);
   // Chronological order (oldest first) for receipt rows
   const wearsChron = useMemo(
     () => [...item.wears].sort((a, b) => new Date(a.worn_at).getTime() - new Date(b.worn_at).getTime()),
     [item.wears]
   );
 
-  const acquired = new Date(item.purchased_at + "T12:00:00").toLocaleDateString("en-US", {
+  const acquired = new Date(item.purchased_at + "T12:00:00").toLocaleDateString(locale === "es" ? "es-ES" : "en-US", {
     month: "short",
     year: "numeric",
   });
@@ -97,10 +100,10 @@ export function ReceiptShare({ item, username }: Props) {
             Wears
           </Text>
           <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 8, color: "#8A8070", textAlign: "center", letterSpacing: 2.5, textTransform: "uppercase", marginBottom: 2 }}>
-            QUARTERLY EARNINGS REPORT
+            {t("shareQuarterlyReport")}
           </Text>
           <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 8, color: "#8A8070", textAlign: "center", letterSpacing: 1.5, marginBottom: 14 }}>
-            OPERATOR · {username.toUpperCase()}
+            {t("shareOperator")} · {username.toUpperCase()}
           </Text>
 
           <DotLine />
@@ -110,22 +113,22 @@ export function ReceiptShare({ item, username }: Props) {
             {item.name}
           </Text>
           <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 8, color: "#8A8070", textAlign: "center", letterSpacing: 1.5, marginBottom: 12 }}>
-            {item.brand ? `${item.brand.toUpperCase()} · ` : ""}ACQUIRED {acquired.toUpperCase()}
+            {item.brand ? `${item.brand.toUpperCase()} · ` : ""}{t("shareAcquired")} {acquired.toUpperCase()}
           </Text>
 
           <DotLine />
 
           {/* Summary rows */}
           <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 5 }}>
-            <Text style={mono}>BASIS</Text>
-            <Text style={mono}>${item.price.toFixed(2)}</Text>
+            <Text style={mono}>{t("shareBasis")}</Text>
+            <Text style={mono}>{symbol}{item.price.toFixed(2)}</Text>
           </View>
           <View style={{ flexDirection: "row", justifyContent: "space-between", paddingBottom: 2 }}>
-            <Text style={mono}>UNITS</Text>
+            <Text style={mono}>{t("shareUnits")}</Text>
             <View style={{ alignItems: "flex-end" }}>
               <Text style={mono}>{item.wears.length}</Text>
               <Text style={{ ...mono, fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 9, color: "#C8C0B4" }}>
-                wears
+                {t("shareWearsLower")}
               </Text>
             </View>
           </View>
@@ -134,9 +137,9 @@ export function ReceiptShare({ item, username }: Props) {
 
           {/* Column headers */}
           <View style={{ flexDirection: "row", paddingVertical: 6 }}>
-            <Text style={[mono, { width: 36 }]}>DATE</Text>
-            <Text style={[mono, { flex: 1 }]}>OCCASION</Text>
-            <Text style={[mono, { width: 56, textAlign: "right" }]}>CPW</Text>
+            <Text style={[mono, { width: 36 }]}>{t("shareDateCol")}</Text>
+            <Text style={[mono, { flex: 1 }]}>{t("shareOccasionCol")}</Text>
+            <Text style={[mono, { width: 56, textAlign: "right" }]}>{t("shareCpwCol")}</Text>
           </View>
 
           {/* Wear rows — chronological, oldest first, up to 12 */}
@@ -149,7 +152,7 @@ export function ReceiptShare({ item, username }: Props) {
                 {wear.occasion ?? "—"}
               </Text>
               <Text style={[monoInk, { width: 56, textAlign: "right", color: "#C4503A" }]}>
-                ${(item.price / (i + 1)).toFixed(2)}
+                {symbol}{(item.price / (i + 1)).toFixed(2)}
               </Text>
             </View>
           ))}
@@ -158,15 +161,15 @@ export function ReceiptShare({ item, username }: Props) {
 
           {/* Net CPW */}
           <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 8, color: "#8A8070", textAlign: "center", letterSpacing: 2, marginTop: 12, marginBottom: 2 }}>
-            NET COST PER WEAR
+            {t("shareNetCpw")}
           </Text>
           <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 52, color: "#C4503A", textAlign: "center", lineHeight: 60 }}>
-            ${item.cpw.toFixed(2)}
+            {symbol}{item.cpw.toFixed(2)}
           </Text>
 
           {item.cpw <= 25 && (
             <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 8, color: "#1A1A1A", textAlign: "center", letterSpacing: 2, marginBottom: 12 }}>
-              ※ STATUS: PROFITABLE ※
+              {t("shareProfitableStatus")}
             </Text>
           )}
 
@@ -187,7 +190,7 @@ export function ReceiptShare({ item, username }: Props) {
 
       {/* Canvas footer */}
       <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: 2, textAlign: "center", marginTop: 20 }}>
-        cost basis: justified · @ wears
+        {t("shareCostBasisJustified")}
       </Text>
     </View>
   );

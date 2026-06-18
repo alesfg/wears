@@ -1,6 +1,8 @@
 import { View, Text } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { getTier, isProfitable } from "@/constants/config";
+import { useCurrencyStore } from "@/store/currencyStore";
+import { t, locale } from "@/lib/i18n";
 import type { ItemWithWears } from "@/lib/database.types";
 
 interface Props {
@@ -90,13 +92,14 @@ function StatChip({ label, value }: { label: string; value: string }) {
 }
 
 export function WalletPassShare({ item, username }: Props) {
-  const acquired = new Date(item.purchased_at + "T12:00:00").toLocaleDateString("en-US", {
+  const symbol = useCurrencyStore((s) => s.symbol);
+  const acquired = new Date(item.purchased_at + "T12:00:00").toLocaleDateString(locale === "es" ? "es-ES" : "en-US", {
     month: "short",
     year: "2-digit",
   });
   const itemYear = `'${new Date(item.purchased_at + "T12:00:00").getFullYear().toString().slice(2)}`;
   const tier = getTier(item.cpw);
-  const status = isProfitable(item.cpw) ? "PROFIT." : "IN PROGRESS";
+  const status = isProfitable(item.cpw) ? t("shareProfit") : t("shareInProgress");
   const categoryTag = item.category?.toUpperCase() ?? item.name.split(" ").pop()?.toUpperCase() ?? "ITEM";
 
   return (
@@ -139,7 +142,7 @@ export function WalletPassShare({ item, username }: Props) {
                 textTransform: "uppercase",
               }}
             >
-              WEARS · MEMBER
+              WEARS · {t("shareMember")}
             </Text>
             <Text
               style={{
@@ -176,7 +179,7 @@ export function WalletPassShare({ item, username }: Props) {
             textTransform: "uppercase",
           }}
         >
-          ASSET
+          {t("shareAsset")}
         </Text>
         <Text
           style={{
@@ -203,7 +206,7 @@ export function WalletPassShare({ item, username }: Props) {
             marginBottom: 6,
           }}
         >
-          COST PER WEAR
+          {t("costPerWear")}
         </Text>
         <Text
           style={{
@@ -214,7 +217,7 @@ export function WalletPassShare({ item, username }: Props) {
             lineHeight: 72,
           }}
         >
-          ${item.cpw.toFixed(2)}
+          {symbol}{item.cpw.toFixed(2)}
         </Text>
         <Text
           style={{
@@ -226,16 +229,16 @@ export function WalletPassShare({ item, username }: Props) {
             marginTop: 6,
           }}
         >
-          {item.wears.length} WEARS · ${Math.round(item.price)} BASIS
+          {item.wears.length} {t("wears")} · {symbol}{Math.round(item.price)} {t("shareBasis")}
         </Text>
 
         <DashedSep />
 
         {/* 3 stat chips */}
         <View style={{ flexDirection: "row", gap: 8 }}>
-          <StatChip label="SINCE" value={acquired.toUpperCase()} />
-          <StatChip label="STATUS" value={status} />
-          <StatChip label="TIER" value={tier.toUpperCase()} />
+          <StatChip label={t("shareSince")} value={acquired.toUpperCase()} />
+          <StatChip label={t("shareStatus")} value={status} />
+          <StatChip label={t("shareTier")} value={tier.toUpperCase()} />
         </View>
 
         {/* QR decoration */}
@@ -266,7 +269,7 @@ export function WalletPassShare({ item, username }: Props) {
           marginTop: 20,
         }}
       >
-        she&apos;s earning her keep.
+        {t("shareWalletTagline")}
       </Text>
 
       {/* Footer */}
@@ -280,7 +283,7 @@ export function WalletPassShare({ item, username }: Props) {
           marginTop: 10,
         }}
       >
-        downloaded from wears · @{username.toLowerCase()}
+        {t("shareDownloadedFooter", { username: username.toLowerCase() })}
       </Text>
     </View>
   );

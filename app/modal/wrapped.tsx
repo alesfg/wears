@@ -16,6 +16,7 @@ import { useRef, useEffect, useCallback, useMemo, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import { useItemStore } from "@/store/itemStore";
 import { useUserStore } from "@/store/userStore";
+import { useCurrencyStore } from "@/store/currencyStore";
 import { getTier } from "@/constants/config";
 import { Colors } from "@/constants/theme";
 import { posthog, Events } from "@/lib/posthog";
@@ -23,6 +24,7 @@ import ViewShot, { type ViewShotRef } from "react-native-view-shot";
 import * as SharingLib from "expo-sharing";
 import { Asset as MediaAsset, requestPermissionsAsync } from "expo-media-library";
 import { WrappedReceiptShare } from "@/components/features/shares/WrappedReceiptShare";
+import { t, locale } from "@/lib/i18n";
 import type { ItemWithWears } from "@/lib/database.types";
 
 const { width: SW, height: SH } = Dimensions.get("window");
@@ -39,9 +41,9 @@ function swatchColor(id: string): string {
   return SWATCH_PALETTE[h % SWATCH_PALETTE.length];
 }
 
-function cpwStr(val: number): string {
-  if (val >= 100 && Number.isInteger(val)) return `$${val}`;
-  return `$${val.toFixed(2)}`;
+function cpwStr(val: number, symbol: string): string {
+  if (val >= 100 && Number.isInteger(val)) return `${symbol}${val}`;
+  return `${symbol}${val.toFixed(2)}`;
 }
 
 // ─── Story progress bar ───────────────────────────────────────────────────────
@@ -105,12 +107,13 @@ function StoryHeader({
 function Slide0({ name, year, pieces, totalWears, blendedCpw }: {
   name: string; year: string; pieces: number; totalWears: number; blendedCpw: number;
 }) {
+  const symbol = useCurrencyStore((s) => s.symbol);
   return (
     <View style={{ flex: 1, paddingHorizontal: 24 }}>
       {/* Labels + headline */}
       <View style={{ marginTop: 32 }}>
         <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: "rgba(245,242,235,0.45)", letterSpacing: 3, textTransform: "uppercase", marginBottom: 16 }}>
-          ANNUAL EARNINGS REPORT
+          {t("shareAnnualReport")}
         </Text>
         <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 80, color: "#F5F2EB", lineHeight: 84, letterSpacing: -1 }}>
           Wears
@@ -121,7 +124,7 @@ function Slide0({ name, year, pieces, totalWears, blendedCpw }: {
       </View>
 
       <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 20, color: "#F5F2EB", lineHeight: 30, marginTop: 28 }}>
-        {name}, your closet had a quiet, profitable year. Let&apos;s go to the numbers.
+        {t("wrappedIntroLine", { name })}
       </Text>
 
       {/* Spacer */}
@@ -130,9 +133,9 @@ function Slide0({ name, year, pieces, totalWears, blendedCpw }: {
       {/* Stat strip */}
       <View style={{ flexDirection: "row", backgroundColor: "rgba(255,255,255,0.08)", marginBottom: 20 }}>
         {[
-          { label: "CLOSET", value: String(pieces) },
-          { label: "WEARS", value: String(totalWears) },
-          { label: "CPW", value: cpwStr(blendedCpw) },
+          { label: t("tabCloset"), value: String(pieces) },
+          { label: t("wears"), value: String(totalWears) },
+          { label: t("shareCpwCol"), value: cpwStr(blendedCpw, symbol) },
         ].map((s, i) => (
           <View
             key={s.label}
@@ -149,7 +152,7 @@ function Slide0({ name, year, pieces, totalWears, blendedCpw }: {
       </View>
 
       <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: "rgba(245,242,235,0.35)", letterSpacing: 2, textTransform: "uppercase", textAlign: "center", marginBottom: 12 }}>
-        TAP TO BEGIN →
+        {t("wrappedTapToBegin")}
       </Text>
     </View>
   );
@@ -157,10 +160,11 @@ function Slide0({ name, year, pieces, totalWears, blendedCpw }: {
 
 // ─── Slide 1: MVP item (cream) ────────────────────────────────────────────────
 function Slide1({ item }: { item: ItemWithWears | null }) {
+  const symbol = useCurrencyStore((s) => s.symbol);
   if (!item) return (
     <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 24 }}>
       <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 28, color: Colors.ink, textAlign: "center" }}>
-        Log some wears to unlock your MVP piece.
+        {t("wrappedNoMvp")}
       </Text>
     </View>
   );
@@ -181,7 +185,7 @@ function Slide1({ item }: { item: ItemWithWears | null }) {
             )}
             {/* EXHIBIT A */}
             <Text style={{ position: "absolute", top: 10, left: 12, fontFamily: "DMSans_400Regular", fontSize: 9, color: "rgba(255,255,255,0.6)", letterSpacing: 2, textTransform: "uppercase" }}>
-              EXHIBIT A
+              {t("wrappedExhibitA")}
             </Text>
             {/* Tier badge */}
             <View style={{ position: "absolute", top: 16, right: -4, backgroundColor: "#F5F2EB", borderWidth: 1, borderColor: Colors.cpw, paddingHorizontal: 10, paddingVertical: 5 }}>
@@ -196,21 +200,21 @@ function Slide1({ item }: { item: ItemWithWears | null }) {
       {/* Info */}
       <View style={{ paddingHorizontal: 8 }}>
         <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>
-          MOST PROFITABLE PIECE OF 20{new Date().getFullYear().toString().slice(-2)}
+          {t("wrappedMvpOfYear", { yy: new Date().getFullYear().toString().slice(-2) })}
         </Text>
         <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 38, color: Colors.ink, lineHeight: 44 }}>
           {item.name}
         </Text>
         <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 38, color: Colors.cpw, lineHeight: 44 }}>
-          earned her keep.
+          {t("wrappedEarnedKeep")}
         </Text>
 
         {/* Stats */}
         <View style={{ flexDirection: "row", gap: 20, marginTop: 16 }}>
           {[
-            { label: "WORN", value: `${item.wears.length}×` },
-            { label: "FROM", value: `$${item.price}` },
-            { label: "TO", value: cpwStr(item.cpw), accent: true },
+            { label: t("shareWornLabel"), value: `${item.wears.length}×` },
+            { label: t("wrappedFromLabel"), value: `${symbol}${item.price}` },
+            { label: t("wrappedToLabel"), value: cpwStr(item.cpw, symbol), accent: true },
           ].map((s) => (
             <View key={s.label}>
               <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 4 }}>
@@ -236,7 +240,7 @@ function Slide2({ totalWears, busiestMonth, quietestMonth }: {
   return (
     <View style={{ flex: 1, paddingHorizontal: 24 }}>
       <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: "rgba(245,242,235,0.55)", letterSpacing: 3, textTransform: "uppercase", marginTop: 20, marginBottom: 8 }}>
-        THIS YEAR YOU WORE
+        {t("wrappedThisYearWore")}
       </Text>
       <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 110, color: "#F5F2EB", lineHeight: 128, letterSpacing: -2 }}>
         {totalWears}
@@ -248,9 +252,9 @@ function Slide2({ totalWears, busiestMonth, quietestMonth }: {
       <View style={{ flex: 1 }} />
 
       <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 22, color: "#F5F2EB", lineHeight: 32, marginBottom: 24 }}>
-        That&apos;s more than the average woman wears in eighteen months. You are{" "}
-        <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic" }}>using</Text>
-        {" "}your closet.
+        {t("wrappedAvgWomanLine")}{" "}
+        <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic" }}>{t("wrappedUsingWord")}</Text>
+        {" "}{t("wrappedYourClosetSuffix")}
       </Text>
 
       {/* Month stat boxes */}
@@ -259,7 +263,7 @@ function Slide2({ totalWears, busiestMonth, quietestMonth }: {
           {busiestMonth && (
             <View style={{ flex: 1, borderWidth: 1, borderColor: "rgba(245,242,235,0.35)", padding: 12 }}>
               <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: "rgba(245,242,235,0.55)", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>
-                MOST FREQUENT MONTH
+                {t("wrappedMostFrequentMonth")}
               </Text>
               <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 16, color: "#F5F2EB" }}>
                 {busiestMonth[0].slice(0, 3).toUpperCase()}· {busiestMonth[1]}
@@ -269,7 +273,7 @@ function Slide2({ totalWears, busiestMonth, quietestMonth }: {
           {quietestMonth && (
             <View style={{ flex: 1, borderWidth: 1, borderColor: "rgba(245,242,235,0.35)", padding: 12 }}>
               <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: "rgba(245,242,235,0.55)", letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>
-                QUIETEST
+                {t("wrappedQuietest")}
               </Text>
               <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 16, color: "#F5F2EB" }}>
                 {quietestMonth[0].slice(0, 3).toUpperCase()}· {quietestMonth[1]}
@@ -284,17 +288,18 @@ function Slide2({ totalWears, busiestMonth, quietestMonth }: {
 
 // ─── Slide 3: Underperformers (dark) ─────────────────────────────────────────
 function Slide3({ items }: { items: ItemWithWears[] }) {
+  const symbol = useCurrencyStore((s) => s.symbol);
   const count = Math.min(items.length, 2);
-  const label = count === 1 ? "one piece" : `${count} pieces`;
+  const label = count === 1 ? t("wrappedOnePiece") : t("wrappedNPieces", { count: String(count) });
 
   return (
     <View style={{ flex: 1, paddingHorizontal: 24 }}>
       <View style={{ marginTop: 20, marginBottom: 24 }}>
         <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: "rgba(245,242,235,0.4)", letterSpacing: 2, textTransform: "uppercase", marginBottom: 10 }}>
-          THE UNDERPERFORMERS
+          {t("wrappedUnderperformersTitle")}
         </Text>
         <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 40, color: "#F5F2EB", lineHeight: 48 }}>
-          A gentle word{"\n"}about{" "}
+          {t("wrappedGentleWordPrefix")}{" "}
           <Text style={{ color: Colors.cpw }}>{label}.</Text>
         </Text>
       </View>
@@ -315,15 +320,15 @@ function Slide3({ items }: { items: ItemWithWears[] }) {
                 {item.name}
               </Text>
               <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: "rgba(245,242,235,0.45)", letterSpacing: 1, marginTop: 3 }}>
-                {[item.brand?.toUpperCase(), `${item.wears.length}× WORN`, `$${item.price}`].filter(Boolean).join(" · ")}
+                {[item.brand?.toUpperCase(), `${item.wears.length}× ${t("shareWornLabel")}`, `${symbol}${item.price}`].filter(Boolean).join(" · ")}
               </Text>
             </View>
             <View style={{ alignItems: "flex-end" }}>
               <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 20, color: Colors.cpw }}>
-                {cpwStr(item.cpw)}
+                {cpwStr(item.cpw, symbol)}
               </Text>
               <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: "rgba(245,242,235,0.4)", letterSpacing: 1 }}>
-                /wear
+                {t("perWear")}
               </Text>
             </View>
           </View>
@@ -333,9 +338,9 @@ function Slide3({ items }: { items: ItemWithWears[] }) {
       <View style={{ flex: 1 }} />
 
       <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 20, color: "#F5F2EB", lineHeight: 30, marginBottom: 20 }}>
-        No judgment. Just wear them{" "}
-        <Text style={{ color: Colors.cpw }}>three times each</Text>
-        {" "}and the math fixes itself.
+        {t("wrappedNoJudgmentPrefix")}{" "}
+        <Text style={{ color: Colors.cpw }}>{t("wrappedThreeTimesEach")}</Text>
+        {" "}{t("wrappedMathFixesSuffix")}
       </Text>
     </View>
   );
@@ -354,6 +359,7 @@ function Slide4({
   cardRef: React.RefObject<ViewShotRef | null>;
   onShare: () => void; onSaveToRoll: () => void; saving: boolean; onReplay: () => void;
 }) {
+  const symbol = useCurrencyStore((s) => s.symbol);
   const cardWidth = SW - 48;
 
   return (
@@ -375,7 +381,7 @@ function Slide4({
             activeOpacity={0.7}
           >
             <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, letterSpacing: 2, textTransform: "uppercase", color: format === f ? Colors.cream : Colors.muted }}>
-              {f === "card" ? "Card" : "Receipt"}
+              {f === "card" ? t("wrappedFormatCard") : t("wrappedFormatReceipt")}
             </Text>
           </TouchableOpacity>
         ))}
@@ -399,7 +405,7 @@ function Slide4({
               >
                 <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 4 }}>
                   <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: "rgba(245,242,235,0.6)", letterSpacing: 2, textTransform: "uppercase" }}>
-                    WEARS · SHAREHOLDER
+                    WEARS · {t("shareShareholder")}
                   </Text>
                   <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: "rgba(245,242,235,0.6)", letterSpacing: 1 }}>
                     &apos;{year} / Q4
@@ -414,10 +420,10 @@ function Slide4({
                 <View style={{ borderBottomWidth: 1, borderBottomColor: "rgba(245,242,235,0.3)", borderStyle: "dashed", marginVertical: 16 }} />
 
                 <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: "rgba(245,242,235,0.6)", letterSpacing: 2, textTransform: "uppercase", marginBottom: 6 }}>
-                  BLENDED COST PER WEAR
+                  {t("shareBlendedCpw")}
                 </Text>
                 <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 56, color: "#F5F2EB", letterSpacing: -1 }}>
-                  {cpwStr(blendedCpw)}
+                  {cpwStr(blendedCpw, symbol)}
                 </Text>
               </LinearGradient>
             </View>
@@ -438,9 +444,9 @@ function Slide4({
       {/* Tagline */}
       {format === "card" && (
         <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 26, color: Colors.ink, lineHeight: 34, textAlign: "center", marginBottom: 20, paddingHorizontal: 24 }}>
-          You&apos;re{" "}
-          <Text style={{ color: Colors.cpw }}>profitable</Text>
-          , {name}.{"\n"}Q1 outlook strong.
+          {t("wrappedProfitableTaglinePrefix")}{" "}
+          <Text style={{ color: Colors.cpw }}>{t("wrappedProfitableWord")}</Text>
+          {t("wrappedProfitableTaglineSuffix", { name })}
         </Text>
       )}
 
@@ -457,7 +463,7 @@ function Slide4({
               <ActivityIndicator color={Colors.cream} />
             ) : (
               <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.cream, letterSpacing: 1 }}>
-                ↑  Share
+                ↑  {t("wrappedShareBtn")}
               </Text>
             )}
           </TouchableOpacity>
@@ -468,7 +474,7 @@ function Slide4({
             activeOpacity={0.7}
           >
             <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.ink, letterSpacing: 1 }}>
-              Save to Photos
+              {t("wrappedSaveToPhotos")}
             </Text>
           </TouchableOpacity>
         </View>
@@ -478,7 +484,7 @@ function Slide4({
           activeOpacity={0.7}
         >
           <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 14, color: Colors.muted }}>
-            Replay
+            {t("wrappedReplay")}
           </Text>
         </TouchableOpacity>
       </View>
@@ -491,6 +497,7 @@ export default function Wrapped() {
   const router = useRouter();
   const items = useItemStore((s) => s.items);
   const { user } = useUserStore();
+  const symbol = useCurrencyStore((s) => s.symbol);
   const insets = useSafeAreaInsets();
 
   const displayName = useMemo(() => {
@@ -517,7 +524,7 @@ export default function Wrapped() {
     for (const item of items) {
       for (const wear of item.wears) {
         const d = new Date(wear.worn_at + "T12:00:00");
-        const m = d.toLocaleString("en-US", { month: "long" }).toUpperCase();
+        const m = d.toLocaleString(locale === "es" ? "es-ES" : "en-US", { month: "long" }).toUpperCase();
         monthCounts[m] = (monthCounts[m] || 0) + 1;
       }
     }
@@ -585,11 +592,16 @@ export default function Wrapped() {
     try {
       const uri = await captureCard();
       if (uri && await SharingLib.isAvailableAsync()) {
-        await SharingLib.shareAsync(uri, { mimeType: "image/png", dialogTitle: "Share your Wrapped" });
+        await SharingLib.shareAsync(uri, { mimeType: "image/png", dialogTitle: t("wrappedShareDialogTitle") });
         posthog.capture(Events.SHARE_EXPORTED, { format: shareFormat, source: "wrapped", action: "share" });
       } else {
         await Share.share({
-          message: `My Wears Wrapped '${year}: ${stats.pieces} pieces, ${stats.totalWears} wears, $${stats.blendedCpw.toFixed(2)} blended CPW. @wears`,
+          message: t("wrappedShareMessage", {
+            year,
+            pieces: String(stats.pieces),
+            wears: String(stats.totalWears),
+            cpw: `${symbol}${stats.blendedCpw.toFixed(2)}`,
+          }),
         });
       }
     } catch { /* ignore */ }
@@ -599,7 +611,7 @@ export default function Wrapped() {
   const onSaveToRoll = async () => {
     const { status } = await requestPermissionsAsync();
     if (status !== "granted") {
-      Alert.alert("Permission needed", "Allow photo library access to save.");
+      Alert.alert(t("wrappedPermNeededTitle"), t("wrappedPermNeededMsg"));
       return;
     }
     setSaving(true);
@@ -608,9 +620,9 @@ export default function Wrapped() {
       if (!uri) { setSaving(false); return; }
       await MediaAsset.create(uri);
       posthog.capture(Events.SHARE_EXPORTED, { format: shareFormat, source: "wrapped", action: "save" });
-      Alert.alert("Saved!", "Image saved to your camera roll.");
+      Alert.alert(t("wrappedSavedTitle"), t("wrappedSavedMsg"));
     } catch (e: unknown) {
-      Alert.alert("Error saving", e instanceof Error ? e.message : String(e));
+      Alert.alert(t("wrappedErrorSavingTitle"), e instanceof Error ? e.message : String(e));
     }
     setSaving(false);
   };

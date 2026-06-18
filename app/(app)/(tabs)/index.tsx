@@ -14,17 +14,18 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
+import { Feather } from "@expo/vector-icons";
 import { useItemStore } from "@/store/itemStore";
 import { useUserStore } from "@/store/userStore";
+import { useCurrencyStore } from "@/store/currencyStore";
 import { usePaywall } from "@/hooks/usePaywall";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { DashedLine } from "@/components/ui/DashedLine";
-import { ItemRow } from "@/components/features/ItemRow";
+import { ItemRow, ItemGridCard } from "@/components/features/ItemRow";
 import { Colors } from "@/constants/theme";
-import { FREE_TIER_ITEM_LIMIT, OCCASIONS, getTier } from "@/constants/config";
+import { FREE_TIER_ITEM_LIMIT } from "@/constants/config";
 import { supabase } from "@/lib/supabase";
-import { scheduleTierMilestoneNotification } from "@/lib/notifications";
-import type { ItemWithWears, WearInsert } from "@/lib/database.types";
+import type { ItemWithWears } from "@/lib/database.types";
 import { t } from "@/lib/i18n";
 
 function formatPeriod() {
@@ -46,16 +47,51 @@ function StatRow({ label, value, highlight }: { label: string; value: string; hi
   );
 }
 
-function ListHeader({ username, totalCostBasis, totalWears, pieces, blendedCpw, onWrappedPress }: {
+function FilterChip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.7}
+      style={{
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        marginRight: 8,
+        borderWidth: 1,
+        borderColor: active ? Colors.ink : Colors.border,
+        backgroundColor: active ? Colors.ink : "transparent",
+      }}
+    >
+      <Text
+        style={{
+          fontFamily: "DMSans_400Regular",
+          fontSize: 10,
+          letterSpacing: 1,
+          textTransform: "uppercase",
+          color: active ? Colors.cream : Colors.muted,
+        }}
+      >
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+}
+
+function ListHeader({
+  username, totalCostBasis, totalWears, pieces, blendedCpw, onWrappedPress,
+  categories, categoryFilter, onCategoryChange, viewMode, onViewModeChange,
+}: {
   username: string; totalCostBasis: number; totalWears: number; pieces: number; blendedCpw: number; onWrappedPress: () => void;
+  categories: string[]; categoryFilter: string | null; onCategoryChange: (c: string | null) => void;
+  viewMode: "list" | "grid"; onViewModeChange: (v: "list" | "grid") => void;
 }) {
+  const symbol = useCurrencyStore((s) => s.symbol);
   return (
     <View style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 4 }}>
       <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 40, color: Colors.ink, textAlign: "center" }}>
         Wears
       </Text>
       <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, textAlign: "center", letterSpacing: 2.5, textTransform: "uppercase", marginBottom: 16 }}>
-        QUARTERLY · {username} · {formatPeriod()}
+        {t("quarterlyLabel")} · {username} · {formatPeriod()}
       </Text>
 
       {/* Wrapped CTA */}
@@ -79,25 +115,54 @@ function ListHeader({ username, totalCostBasis, totalWears, pieces, blendedCpw, 
 
       <DashedLine marginVertical={4} />
       <View style={{ paddingVertical: 8 }}>
-        <StatRow label={t("costBasis")} value={`$${totalCostBasis.toFixed(2)}`} />
+        <StatRow label={t("costBasis")} value={`${symbol}${totalCostBasis.toFixed(2)}`} />
         <StatRow label={t("wearsLogged")} value={String(totalWears)} />
         <StatRow label={t("pieces")} value={String(pieces)} />
       </View>
       <DashedLine marginVertical={4} />
       <View style={{ paddingVertical: 10 }}>
-        <StatRow label={t("blendedCpw")} value={blendedCpw > 0 ? `$${blendedCpw.toFixed(2)}` : "—"} highlight />
+        <StatRow label={t("blendedCpw")} value={blendedCpw > 0 ? `${symbol}${blendedCpw.toFixed(2)}` : "—"} highlight />
       </View>
+      {categories.length > 0 && (
+        <>
+          <DashedLine marginVertical={4} />
+          <View style={{ flexDirection: "row", alignItems: "center", paddingVertical: 10 }}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }}>
+              <FilterChip label={t("filterAll")} active={categoryFilter === null} onPress={() => onCategoryChange(null)} />
+              {categories.map((cat) => (
+                <FilterChip
+                  key={cat}
+                  label={cat.toUpperCase()}
+                  active={categoryFilter === cat}
+                  onPress={() => onCategoryChange(categoryFilter === cat ? null : cat)}
+                />
+              ))}
+            </ScrollView>
+            <TouchableOpacity
+              onPress={() => onViewModeChange(viewMode === "list" ? "grid" : "list")}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              style={{ paddingLeft: 10 }}
+              activeOpacity={0.7}
+            >
+              <Feather name={viewMode === "list" ? "grid" : "list"} size={16} color={Colors.ink} />
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
       <DashedLine marginVertical={4} />
-      <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 8 }}>
-        <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase" }}>{t("itemCol")}</Text>
-        <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase" }}>CPW</Text>
-      </View>
+      {viewMode === "list" && (
+        <View style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 8 }}>
+          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase" }}>{t("itemCol")}</Text>
+          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase" }}>{t("cpwCol")}</Text>
+        </View>
+      )}
       <DashedLine />
     </View>
   );
 }
 
 function EmptyState() {
+  const symbol = useCurrencyStore((s) => s.symbol);
   return (
     <View style={{ alignItems: "center", paddingTop: 48, paddingHorizontal: 32 }}>
       <Image
@@ -113,12 +178,12 @@ function EmptyState() {
         {["—", "—", "—"].map((_, i) => (
           <View key={i} style={{ flexDirection: "row", justifyContent: "space-between", width: "100%", opacity: 0.3 }}>
             <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.ink }}>item #{i + 1}</Text>
-            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.ink }}>$—.—/wear</Text>
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.ink }}>{symbol}—.—/wear</Text>
           </View>
         ))}
         <View style={{ width: "100%", height: 1, borderBottomWidth: 1, borderBottomColor: Colors.border, borderStyle: "dashed" }} />
         <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 38, color: Colors.cpw, opacity: 0.25 }}>
-          $0.00
+          {symbol}0.00
         </Text>
         <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase" }}>
           BLENDED CPW
@@ -137,15 +202,14 @@ function EmptyState() {
 export default function ClosetLedger() {
   const router = useRouter();
   const { user, setSession } = useUserStore();
-  const { items, isLoading, fetchItems, logWear } = useItemStore();
-  const { isAtFreeLimit, isPro } = usePaywall();
+  const { items, isLoading, fetchItems } = useItemStore();
+  const { isPro } = usePaywall();
   const { track, Events } = useAnalytics();
-  const [showWearPicker, setShowWearPicker] = useState(false);
   const [showNamePrompt, setShowNamePrompt] = useState(false);
   const [nameInput, setNameInput] = useState("");
   const [savingName, setSavingName] = useState(false);
-  const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
-  const [quickLogCard, setQuickLogCard] = useState<{ name: string; newCpw: number; wears: number } | null>(null);
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
 
   useEffect(() => {
     if (user?.id) fetchItems(user.id);
@@ -176,6 +240,16 @@ export default function ClosetLedger() {
 
   const sorted = useMemo(() => [...items].sort((a, b) => a.cpw - b.cpw), [items]);
 
+  const categories = useMemo(
+    () => Array.from(new Set(items.map((i) => i.category).filter((c): c is string => !!c))).sort(),
+    [items]
+  );
+
+  const filteredSorted = useMemo(
+    () => (categoryFilter ? sorted.filter((i) => i.category === categoryFilter) : sorted),
+    [sorted, categoryFilter]
+  );
+
   const stats = useMemo(() => {
     const totalCostBasis = items.reduce((s, i) => s + i.price, 0);
     const totalWears = items.reduce((s, i) => s + i.wears.length, 0);
@@ -185,43 +259,6 @@ export default function ClosetLedger() {
 
   const rawName = user?.user_metadata?.display_name;
   const username = rawName ? String(rawName).toUpperCase() : (user?.email?.split("@")[0]?.toUpperCase() ?? "YOU");
-
-  const openAddItem = () => {
-    if (isAtFreeLimit(items.length)) {
-      track(Events.PAYWALL_SHOWN, { trigger: "item_limit" });
-      router.push("/modal/paywall");
-      return;
-    }
-    track(Events.FEATURE_USED, { feature: "add_item" });
-    router.push("/modal/add-item");
-  };
-
-  const handleQuickLog = async (item: ItemWithWears, occasion?: string) => {
-    if (!user?.id) return;
-    const wear: WearInsert = {
-      item_id: item.id,
-      user_id: user.id,
-      worn_at: new Date().toISOString().split("T")[0],
-      occasion: occasion ?? null,
-    };
-    const prevTier = getTier(item.cpw);
-    await logWear(wear);
-    track(Events.WEAR_LOGGED, { item_id: item.id, occasion: occasion ?? null, source: "quick_log" });
-    const newWears = item.wears.length + 1;
-    const newCpw = item.price / newWears;
-    const newTier = getTier(newCpw);
-    if (newTier !== prevTier) {
-      scheduleTierMilestoneNotification(item.name, newCpw, newWears);
-    }
-    setExpandedItemId(null);
-    setQuickLogCard({ name: item.name, newCpw, wears: newWears });
-  };
-
-  const closeWearPicker = () => {
-    setShowWearPicker(false);
-    setExpandedItemId(null);
-    setQuickLogCard(null);
-  };
 
   if (isLoading && items.length === 0) {
     return (
@@ -234,9 +271,11 @@ export default function ClosetLedger() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.cream }} edges={["top"]}>
       <FlatList
-        data={sorted}
+        key={viewMode}
+        data={filteredSorted}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        numColumns={viewMode === "grid" ? 2 : 1}
+        contentContainerStyle={{ paddingBottom: 100, paddingHorizontal: viewMode === "grid" ? 14 : 0 }}
         ListHeaderComponent={
           <ListHeader
             username={username}
@@ -244,6 +283,11 @@ export default function ClosetLedger() {
             totalWears={stats.totalWears}
             pieces={stats.pieces}
             blendedCpw={stats.blendedCpw}
+            categories={categories}
+            categoryFilter={categoryFilter}
+            onCategoryChange={setCategoryFilter}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
             onWrappedPress={() => {
               track(Events.FEATURE_USED, { feature: "wrapped", source: "home" });
               router.push("/modal/wrapped" as never);
@@ -251,15 +295,22 @@ export default function ClosetLedger() {
           />
         }
         ListEmptyComponent={<EmptyState />}
-        renderItem={({ item }: { item: ItemWithWears }) => (
-          <View>
-            <ItemRow item={item} onPress={() => {
+        renderItem={({ item }: { item: ItemWithWears }) =>
+          viewMode === "grid" ? (
+            <ItemGridCard item={item} onPress={() => {
               track(Events.FEATURE_USED, { feature: "view_item", item_id: item.id });
               router.push(`/(app)/item/${item.id}`);
             }} />
-            <DashedLine color={Colors.border} />
-          </View>
-        )}
+          ) : (
+            <View>
+              <ItemRow item={item} onPress={() => {
+                track(Events.FEATURE_USED, { feature: "view_item", item_id: item.id });
+                router.push(`/(app)/item/${item.id}`);
+              }} />
+              <DashedLine color={Colors.border} />
+            </View>
+          )
+        }
       />
 
       {/* Subtle upgrade nudge when 1 slot left on free tier */}
@@ -281,7 +332,7 @@ export default function ClosetLedger() {
       {/* Always-visible bottom CTA */}
       <View style={{ position: "absolute", bottom: 0, left: 0, right: 0, paddingBottom: 28, paddingHorizontal: 20, paddingTop: 12, backgroundColor: Colors.cream, borderTopWidth: 1, borderTopColor: Colors.border }}>
         <TouchableOpacity
-          onPress={() => setShowWearPicker(true)}
+          onPress={() => router.push("/modal/log-wear" as never)}
           style={{ backgroundColor: Colors.ink, paddingVertical: 16, alignItems: "center" }}
           activeOpacity={0.85}
         >
@@ -348,141 +399,6 @@ export default function ClosetLedger() {
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* Wear picker + add new piece */}
-      <Modal
-        visible={showWearPicker}
-        transparent
-        animationType="slide"
-        onRequestClose={closeWearPicker}
-      >
-        <TouchableOpacity
-          style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.3)" }}
-          activeOpacity={1}
-          onPress={closeWearPicker}
-        />
-        <View style={{ backgroundColor: Colors.cream, maxHeight: "65%", borderTopWidth: 1, borderTopColor: Colors.border }}>
-          {/* Sheet header */}
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, paddingVertical: 14 }}>
-            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 2, textTransform: "uppercase" }}>
-              {quickLogCard ? "✓ LOGGED" : t("wearingToday")}
-            </Text>
-            <TouchableOpacity onPress={closeWearPicker} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>✕</Text>
-            </TouchableOpacity>
-          </View>
-          <DashedLine />
-
-          {quickLogCard ? (
-            <View style={{ paddingHorizontal: 24, paddingTop: 20, paddingBottom: 36 }}>
-              <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 18, color: Colors.ink, textAlign: "center", marginBottom: 4 }}>
-                {quickLogCard.name}
-              </Text>
-              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, textAlign: "center", letterSpacing: 1, marginBottom: 20 }}>
-                {quickLogCard.wears}× worn
-              </Text>
-              <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 64, color: Colors.cpw, textAlign: "center", lineHeight: 72 }}>
-                ${quickLogCard.newCpw.toFixed(2)}
-              </Text>
-              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, textAlign: "center", letterSpacing: 2, textTransform: "uppercase", marginBottom: 24 }}>
-                COST PER WEAR
-              </Text>
-              <TouchableOpacity onPress={closeWearPicker} style={{ paddingVertical: 14, alignItems: "center", backgroundColor: Colors.ink }} activeOpacity={0.85}>
-                <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.cream, letterSpacing: 2, textTransform: "uppercase" }}>
-                  Done
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-          <ScrollView bounces={false}>
-            {/* Add new piece row — always first */}
-            <TouchableOpacity
-              onPress={() => {
-                setShowWearPicker(false);
-                openAddItem();
-              }}
-              activeOpacity={0.7}
-            >
-              <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 20, paddingVertical: 16, gap: 14 }}>
-                <View style={{ width: 60, height: 60, borderWidth: 1, borderColor: Colors.border, borderStyle: "dashed", alignItems: "center", justifyContent: "center" }}>
-                  <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 20, color: Colors.muted }}>+</Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 17, color: Colors.ink }}>
-                    {t("newPiece")}
-                  </Text>
-                  <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 0.8, marginTop: 3 }}>
-                    {t("addToCloset")}
-                  </Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-
-            {sorted.length > 0 && (
-              <>
-                <DashedLine />
-                <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 2, textTransform: "uppercase", paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4 }}>
-                  {t("fromCloset")}
-                </Text>
-              </>
-            )}
-
-            {sorted.map((item) => {
-              const expanded = expandedItemId === item.id;
-              return (
-                <View key={item.id}>
-                  <TouchableOpacity
-                    onPress={() => {
-                      track(Events.FEATURE_USED, { feature: "log_wear_from_home", item_id: item.id });
-                      setExpandedItemId(expanded ? null : item.id);
-                    }}
-                    activeOpacity={0.7}
-                  >
-                    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 20, paddingVertical: 14 }}>
-                      <Text style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 16, color: Colors.ink, flex: 1 }} numberOfLines={1}>
-                        {item.name}
-                      </Text>
-                      <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 15, lineHeight: 22, color: Colors.cpw }}>
-                        ${item.cpw.toFixed(2)}<Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted }}> /wear</Text>
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-
-                  {expanded && (
-                    <View style={{ paddingHorizontal: 20, paddingBottom: 14 }}>
-                      <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, marginBottom: 10 }}>
-                        {t("occasionOptional")}
-                      </Text>
-                      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                        <TouchableOpacity
-                          onPress={() => handleQuickLog(item, undefined)}
-                          style={{ paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: Colors.border }}
-                          activeOpacity={0.7}
-                        >
-                          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>{t("skip")}</Text>
-                        </TouchableOpacity>
-                        {OCCASIONS.map((occ) => (
-                          <TouchableOpacity
-                            key={occ}
-                            onPress={() => handleQuickLog(item, occ)}
-                            style={{ paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: Colors.border }}
-                            activeOpacity={0.7}
-                          >
-                            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.ink, letterSpacing: 1 }}>
-                              {occ.toUpperCase()}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    </View>
-                  )}
-                  <DashedLine />
-                </View>
-              );
-            })}
-          </ScrollView>
-          )}
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }

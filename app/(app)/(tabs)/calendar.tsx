@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import {
   View,
   Text,
-  Image,
   ScrollView,
   TouchableOpacity,
   useWindowDimensions,
@@ -12,6 +11,9 @@ import { useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { Colors } from "@/constants/theme";
 import { useItemStore } from "@/store/itemStore";
+import { useCurrencyStore } from "@/store/currencyStore";
+import { ItemSwatch } from "@/components/features/ItemSwatch";
+import { MONTH_SHORT, todayDs, buildWearsByDate, formatDayLabel, earnedForDay } from "@/lib/wearCalendar";
 import { t } from "@/lib/i18n";
 import type { ItemWithWears } from "@/lib/database.types";
 
@@ -24,48 +26,14 @@ const MONTH_NAMES = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
 ];
-const MONTH_SHORT = [
-  "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
-  "JUL", "AUG", "SEP", "OCT", "NOV", "DEC",
-];
-
-// Category → swatch color (used when item has no image)
-const CATEGORY_COLORS: Record<string, string> = {
-  outerwear:   "#C4A882",
-  knitwear:    "#6B5744",
-  denim:       "#2A3F5C",
-  shoes:       "#1A1A1A",
-  bags:        "#9B7A5A",
-  tops:        "#D4C5B2",
-  dresses:     "#C8B8E8",
-  skirts:      "#E8C8A8",
-  pants:       "#4A5568",
-  accessories: "#9B8054",
-};
 
 // Heatmap intensity scale (0 wears = transparent/empty, 1–4+ wears)
 const HMAP_COLORS = ["#F0D8D0", "#D4957A", "#B85A3A", "#8B3520"];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function itemSwatch(item: ItemWithWears): string {
-  return CATEGORY_COLORS[item.category ?? ""] ?? Colors.muted;
-}
-
-// Renders the item's photo if it has one, otherwise a category-color swatch.
-function ItemSwatch({ item, style }: { item: ItemWithWears; style: { width?: number | `${number}%`; height?: number | `${number}%`; flex?: number } }) {
-  if (item.image_url) {
-    return <Image source={{ uri: item.image_url }} style={style} resizeMode="cover" />;
-  }
-  return <View style={{ ...style, backgroundColor: itemSwatch(item) }} />;
-}
-
 function toDs(y: number, m: number, d: number): string {
   return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-}
-
-function todayDs(): string {
-  return new Date().toISOString().split("T")[0];
 }
 
 function daysInMonth(y: number, m: number): number {
@@ -81,17 +49,6 @@ function monthStatus(y: number, m: number): string {
   if (y === n.getFullYear() && m === n.getMonth()) return t("calInProgress");
   if (y < n.getFullYear() || (y === n.getFullYear() && m < n.getMonth())) return t("calComplete");
   return t("calUpcoming");
-}
-
-function buildWearsByDate(items: ItemWithWears[]): Record<string, ItemWithWears[]> {
-  const map: Record<string, ItemWithWears[]> = {};
-  items.forEach((item) => {
-    item.wears.forEach((w) => {
-      if (!map[w.worn_at]) map[w.worn_at] = [];
-      if (!map[w.worn_at].some((i) => i.id === item.id)) map[w.worn_at].push(item);
-    });
-  });
-  return map;
 }
 
 // ─── Calendar cell ────────────────────────────────────────────────────────────
@@ -217,28 +174,12 @@ function CalCell({
 
 // ─── Outfit card ──────────────────────────────────────────────────────────────
 
-function OutfitCard({ ds, items }: { ds: string; items: ItemWithWears[] }) {
-  const router = useRouter();
+function OutfitCard({ ds, items, onPress }: { ds: string; items: ItemWithWears[]; onPress: () => void }) {
+  const symbol = useCurrencyStore((s) => s.symbol);
   if (!items.length) return null;
 
-  const d = new Date(ds + "T00:00:00");
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-  const isToday = ds === todayDs();
-  const isYesterday = ds === yesterday.toISOString().split("T")[0];
-
-  const dateLabel = isToday
-    ? `${t("calToday")} · ${MONTH_SHORT[d.getMonth()]} · ${String(d.getDate()).padStart(2, "0")}`
-    : isYesterday
-    ? `${t("calYesterday")} · ${MONTH_SHORT[d.getMonth()]} · ${String(d.getDate()).padStart(2, "0")}`
-    : `${d.toLocaleDateString("en-US", { weekday: "long" }).toUpperCase()} · ${MONTH_SHORT[d.getMonth()]} · ${String(d.getDate()).padStart(2, "0")}`;
-
-  // CPW earned: sum of price/(n*(n-1)) for each item worn that day
-  const earned = items.reduce((sum, item) => {
-    const n = item.wears.length;
-    return n > 1 ? sum + item.price / (n * (n - 1)) : sum;
-  }, 0);
+  const dateLabel = formatDayLabel(ds);
+  const earned = earnedForDay(items);
 
   const occasion = items
     .flatMap((i) => i.wears.filter((w) => w.worn_at === ds && w.occasion).map((w) => w.occasion!))
@@ -262,7 +203,7 @@ function OutfitCard({ ds, items }: { ds: string; items: ItemWithWears[] }) {
       </Text>
 
       <TouchableOpacity
-        onPress={() => router.push(`/(app)/item/${items[0].id}` as never)}
+        onPress={onPress}
         activeOpacity={0.7}
       >
         <View
@@ -301,7 +242,7 @@ function OutfitCard({ ds, items }: { ds: string; items: ItemWithWears[] }) {
                 textTransform: "uppercase",
               }}
             >
-              {items.length} {t("calPieces")}{occasion ? ` · ${occasion.toUpperCase()}` : ""} · +${earned.toFixed(2)} {t("calEarned")}
+              {items.length} {t("calPieces")}{occasion ? ` · ${occasion.toUpperCase()}` : ""} · +{symbol}{earned.toFixed(2)} {t("calEarned")}
             </Text>
           </View>
 
@@ -315,6 +256,7 @@ function OutfitCard({ ds, items }: { ds: string; items: ItemWithWears[] }) {
 // ─── Month view ───────────────────────────────────────────────────────────────
 
 function MonthView({ wbd }: { wbd: Record<string, ItemWithWears[]> }) {
+  const router = useRouter();
   const { width: sw } = useWindowDimensions();
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
@@ -489,7 +431,11 @@ function MonthView({ wbd }: { wbd: Record<string, ItemWithWears[]> }) {
                   isToday={ds === td}
                   isPast={ds != null && ds < td}
                   cellW={CELL_W}
-                  onPress={() => ds && setSelectedDs(ds === selectedDs ? null : ds)}
+                  onPress={() => {
+                    if (!ds) return;
+                    setSelectedDs(ds === selectedDs ? null : ds);
+                    if ((wbd[ds]?.length ?? 0) > 0) router.push(`/(app)/day/${ds}` as never);
+                  }}
                 />
               );
             })}
@@ -516,7 +462,7 @@ function MonthView({ wbd }: { wbd: Record<string, ItemWithWears[]> }) {
       {/* Outfit card for selected or most-recent logged day */}
       {displayDs && (
         <View style={{ paddingHorizontal: 20, marginTop: 20 }}>
-          <OutfitCard ds={displayDs} items={wbd[displayDs] ?? []} />
+          <OutfitCard ds={displayDs} items={wbd[displayDs] ?? []} onPress={() => router.push(`/(app)/day/${displayDs}` as never)} />
         </View>
       )}
     </ScrollView>
@@ -827,6 +773,7 @@ function HeatmapView({ wbd }: { wbd: Record<string, ItemWithWears[]> }) {
 // ─── List view ────────────────────────────────────────────────────────────────
 
 function ListView({ wbd }: { wbd: Record<string, ItemWithWears[]> }) {
+  const router = useRouter();
   const sortedDates = useMemo(
     () =>
       Object.keys(wbd)
@@ -853,7 +800,9 @@ function ListView({ wbd }: { wbd: Record<string, ItemWithWears[]> }) {
           const items = wbd[ds];
           return (
             <View key={ds}>
-              <View
+              <TouchableOpacity
+                onPress={() => router.push(`/(app)/day/${ds}` as never)}
+                activeOpacity={0.7}
                 style={{
                   flexDirection: "row",
                   justifyContent: "space-between",
@@ -874,7 +823,7 @@ function ListView({ wbd }: { wbd: Record<string, ItemWithWears[]> }) {
                     <ItemSwatch key={item.id} item={item} style={{ width: 18, height: 22 }} />
                   ))}
                 </View>
-              </View>
+              </TouchableOpacity>
               {i < sortedDates.length - 1 && <View style={{ height: 1, backgroundColor: Colors.border }} />}
             </View>
           );
