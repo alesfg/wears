@@ -2,6 +2,7 @@ import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
+import { Feather } from "@expo/vector-icons";
 import { useItemStore } from "@/store/itemStore";
 import { useUserStore } from "@/store/userStore";
 import { useCurrencyStore } from "@/store/currencyStore";
@@ -13,7 +14,7 @@ import { Colors } from "@/constants/theme";
 import { OCCASIONS, getTier } from "@/constants/config";
 import { scheduleTierMilestoneNotification } from "@/lib/notifications";
 import type { ItemWithWears, WearInsert } from "@/lib/database.types";
-import { t } from "@/lib/i18n";
+import { t, occasionLabel } from "@/lib/i18n";
 
 export default function LogWear() {
   const router = useRouter();
@@ -78,7 +79,7 @@ export default function LogWear() {
             {quickLogCard.name}
           </Text>
           <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.muted, textAlign: "center", letterSpacing: 1, marginBottom: 24 }}>
-            {quickLogCard.wears}× worn
+            {t("wornCountSuffix", { n: String(quickLogCard.wears) })}
           </Text>
           <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 76, color: Colors.cpw, textAlign: "center", lineHeight: 84 }}>
             {symbol}{quickLogCard.newCpw.toFixed(2)}
@@ -127,39 +128,49 @@ export default function LogWear() {
                 <ItemRow
                   item={item}
                   onPress={() => {
-                    track(Events.FEATURE_USED, { feature: "log_wear_from_home", item_id: item.id });
-                    setExpandedItemId(expanded ? null : item.id);
+                    track(Events.FEATURE_USED, { feature: "log_wear_from_home", item_id: item.id, source: "quick_log" });
+                    handleQuickLog(item, undefined);
                   }}
                 />
 
-                {expanded && (
-                  <View style={{ paddingHorizontal: 20, paddingBottom: 14 }}>
-                    <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, marginBottom: 10 }}>
-                      {t("occasionOptional")}
+                <View style={{ paddingHorizontal: 20, paddingBottom: 14 }}>
+                  <TouchableOpacity
+                    onPress={() => setExpandedItemId(expanded ? null : item.id)}
+                    style={{
+                      flexDirection: "row",
+                      alignSelf: "flex-start",
+                      alignItems: "center",
+                      gap: 6,
+                      paddingHorizontal: 14,
+                      paddingVertical: 9,
+                      borderWidth: 1,
+                      borderColor: Colors.border,
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Feather name={expanded ? "chevron-up" : "tag"} size={13} color={Colors.ink} />
+                    <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.ink, letterSpacing: 1, textTransform: "uppercase" }}>
+                      {t("addOccasionCta")}
                     </Text>
-                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                      <TouchableOpacity
-                        onPress={() => handleQuickLog(item, undefined)}
-                        style={{ paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: Colors.border }}
-                        activeOpacity={0.7}
-                      >
-                        <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>{t("skip")}</Text>
-                      </TouchableOpacity>
+                  </TouchableOpacity>
+
+                  {expanded && (
+                    <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 10 }}>
                       {OCCASIONS.map((occ) => (
                         <TouchableOpacity
                           key={occ}
                           onPress={() => handleQuickLog(item, occ)}
-                          style={{ paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: Colors.border }}
+                          style={{ paddingHorizontal: 14, paddingVertical: 9, borderWidth: 1, borderColor: Colors.border }}
                           activeOpacity={0.7}
                         >
-                          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.ink, letterSpacing: 1 }}>
-                            {occ.toUpperCase()}
+                          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.ink, letterSpacing: 1 }}>
+                            {occasionLabel(occ)}
                           </Text>
                         </TouchableOpacity>
                       ))}
                     </View>
-                  </View>
-                )}
+                  )}
+                </View>
                 <DashedLine />
               </View>
             );

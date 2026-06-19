@@ -82,11 +82,23 @@ const en = {
   logSinceLine: "LOG {name} SINCE {date}",
   keepReceipt: "* KEEP THIS RECEIPT *",
   occasionOptional: "OCCASION (OPTIONAL)",
-  skip: "SKIP",
+  addOccasionCta: "Add occasion",
+  wornCountSuffix: "{n}× worn",
   iWoredThis: "+ I wore this today",
   acquired: "ACQUIRED",
   perWear: "/wear",
   doneCta: "Done",
+  occOffice: "OFFICE",
+  occWfh: "WFH",
+  occGym: "GYM",
+  occDateNight: "DATE NIGHT",
+  occDinner: "DINNER",
+  occErrand: "ERRAND",
+  occTravel: "TRAVEL",
+  occGallery: "GALLERY",
+  occEvent: "EVENT",
+  occCasual: "CASUAL",
+  occOther: "OTHER",
   shareReceiptCta: "Share the receipt →",
   loggedLabel: "✓ LOGGED",
 
@@ -415,9 +427,21 @@ const es: typeof en = {
   logSinceLine: "REGISTRO DE {name} DESDE {date}",
   keepReceipt: "* GUARDA ESTE RECIBO *",
   occasionOptional: "OCASIÓN (OPCIONAL)",
-  skip: "OMITIR",
+  addOccasionCta: "Agregar ocasión",
+  wornCountSuffix: "{n}× usada",
   iWoredThis: "+ Lo usé hoy",
   acquired: "ADQUIRIDA",
+  occOffice: "OFICINA",
+  occWfh: "DESDE CASA",
+  occGym: "GIMNASIO",
+  occDateNight: "CITA",
+  occDinner: "CENA",
+  occErrand: "RECADOS",
+  occTravel: "VIAJE",
+  occGallery: "GALERÍA",
+  occEvent: "EVENTO",
+  occCasual: "CASUAL",
+  occOther: "OTRO",
   perWear: "/uso",
   doneCta: "Listo",
   shareReceiptCta: "Compartir el recibo →",
@@ -690,4 +714,26 @@ export function t(key: keyof typeof en, vars?: Record<string, string>): string {
     }
   }
   return str;
+}
+
+const OCCASION_KEYS: Record<string, keyof typeof en> = {
+  office: "occOffice",
+  wfh: "occWfh",
+  gym: "occGym",
+  "date night": "occDateNight",
+  dinner: "occDinner",
+  errand: "occErrand",
+  travel: "occTravel",
+  gallery: "occGallery",
+  event: "occEvent",
+  casual: "occCasual",
+  other: "occOther",
+};
+
+// Occasions are stored as fixed English keys in the DB; this only
+// localizes how they're displayed.
+export function occasionLabel(occ: string | null | undefined): string {
+  if (!occ) return "";
+  const key = OCCASION_KEYS[occ];
+  return key ? t(key) : occ.toUpperCase();
 }

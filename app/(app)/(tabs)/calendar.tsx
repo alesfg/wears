@@ -14,7 +14,7 @@ import { useItemStore } from "@/store/itemStore";
 import { useCurrencyStore } from "@/store/currencyStore";
 import { ItemSwatch } from "@/components/features/ItemSwatch";
 import { MONTH_SHORT, todayDs, buildWearsByDate, formatDayLabel, earnedForDay } from "@/lib/wearCalendar";
-import { t } from "@/lib/i18n";
+import { t, occasionLabel } from "@/lib/i18n";
 import type { ItemWithWears } from "@/lib/database.types";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -242,7 +242,7 @@ function OutfitCard({ ds, items, onPress }: { ds: string; items: ItemWithWears[]
                 textTransform: "uppercase",
               }}
             >
-              {items.length} {t("calPieces")}{occasion ? ` · ${occasion.toUpperCase()}` : ""} · +{symbol}{earned.toFixed(2)} {t("calEarned")}
+              {items.length} {t("calPieces")}{occasion ? ` · ${occasionLabel(occasion)}` : ""} · +{symbol}{earned.toFixed(2)} {t("calEarned")}
             </Text>
           </View>
 

@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
+import { Feather } from "@expo/vector-icons";
 import { useItemStore } from "@/store/itemStore";
 import { useUserStore } from "@/store/userStore";
 import { useCurrencyStore } from "@/store/currencyStore";
@@ -23,7 +24,7 @@ import { OCCASIONS, getTier, TIERS } from "@/constants/config";
 import { posthog, Events } from "@/lib/posthog";
 import { scheduleTierMilestoneNotification } from "@/lib/notifications";
 import type { WearInsert, ItemWithWears } from "@/lib/database.types";
-import { t } from "@/lib/i18n";
+import { t, occasionLabel } from "@/lib/i18n";
 
 const { width } = Dimensions.get("window");
 type Tab = "ticker" | "progress" | "log";
@@ -95,7 +96,7 @@ function TickerTab({
             <View key={w.id} style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 6 }}>
               <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.ink }}>
                 {w.worn_at.slice(5).replace("-", "/")}
-                {w.occasion ? ` · ${w.occasion}` : ""}
+                {w.occasion ? ` · ${occasionLabel(w.occasion)}` : ""}
               </Text>
             </View>
           ))}
@@ -290,7 +291,7 @@ function LogTab({ item }: { item: ItemWithWears }) {
                   {wear.worn_at.slice(2).replace(/-/g, "/")}
                 </Text>
                 <Text style={[rowText, { flex: 4, color: Colors.ink }]} numberOfLines={1}>
-                  {wear.occasion ?? "—"}
+                  {wear.occasion ? occasionLabel(wear.occasion) : "—"}
                 </Text>
                 <Text style={[rowText, { flex: 3, textAlign: "right", color: Colors.cpw }]}>
                   {symbol}{cpwThen}
@@ -332,6 +333,7 @@ export default function ItemDetail() {
   const item = useMemo(() => items.find((i) => i.id === id), [items, id]);
   const [activeTab, setActiveTab] = useState<Tab>("ticker");
   const [showOccasionPicker, setShowOccasionPicker] = useState(false);
+  const [selectedOccasion, setSelectedOccasion] = useState<string | undefined>(undefined);
   const [logging, setLogging] = useState(false);
   const [woreItCard, setWoreItCard] = useState<{ newCpw: number; wears: number } | null>(null);
   const [showItemMenu, setShowItemMenu] = useState(false);
@@ -350,6 +352,7 @@ export default function ItemDetail() {
     if (!user?.id) return;
     setLogging(true);
     setShowOccasionPicker(false);
+    setSelectedOccasion(undefined);
     const wear: WearInsert = {
       item_id: item.id,
       user_id: user.id,
@@ -472,7 +475,7 @@ export default function ItemDetail() {
         {activeTab === "log" && <LogTab item={item} />}
       </ScrollView>
 
-      {/* Occasion picker overlay */}
+      {/* Occasion picker overlay — optional, pre-selected before logging */}
       {showOccasionPicker && (
         <View
           style={{
@@ -487,28 +490,34 @@ export default function ItemDetail() {
             zIndex: 10,
           }}
         >
-          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, marginBottom: 12 }}>
+          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1.5, marginBottom: 14 }}>
             {t("occasionOptional")}
           </Text>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-            <TouchableOpacity
-              onPress={() => handleLogWear(undefined)}
-              style={{ paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: Colors.border }}
-            >
-              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, letterSpacing: 1 }}>{t("skip")}</Text>
-            </TouchableOpacity>
-            {OCCASIONS.map((occ) => (
-              <TouchableOpacity
-                key={occ}
-                onPress={() => handleLogWear(occ)}
-                style={{ paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: Colors.border }}
-                activeOpacity={0.7}
-              >
-                <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.ink, letterSpacing: 1 }}>
-                  {occ.toUpperCase()}
-                </Text>
-              </TouchableOpacity>
-            ))}
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+            {OCCASIONS.map((occ) => {
+              const selected = selectedOccasion === occ;
+              return (
+                <TouchableOpacity
+                  key={occ}
+                  onPress={() => {
+                    setSelectedOccasion(selected ? undefined : occ);
+                    setShowOccasionPicker(false);
+                  }}
+                  style={{
+                    paddingHorizontal: 14,
+                    paddingVertical: 9,
+                    borderWidth: 1,
+                    borderColor: selected ? Colors.ink : Colors.border,
+                    backgroundColor: selected ? Colors.ink : "transparent",
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: selected ? Colors.cream : Colors.ink, letterSpacing: 1 }}>
+                    {occasionLabel(occ)}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
       )}
@@ -516,7 +525,29 @@ export default function ItemDetail() {
       {/* Log CTA */}
       <View style={{ position: "absolute", bottom: 0, left: 0, right: 0, paddingBottom: 28, paddingHorizontal: 20, paddingTop: 12, backgroundColor: Colors.cream, borderTopWidth: 1, borderTopColor: Colors.border }}>
         <TouchableOpacity
-          onPress={() => setShowOccasionPicker(!showOccasionPicker)}
+          onPress={() => setShowOccasionPicker((v) => !v)}
+          disabled={logging}
+          style={{
+            alignSelf: "center",
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 6,
+            paddingHorizontal: 16,
+            paddingVertical: 10,
+            marginBottom: 12,
+            borderWidth: 1,
+            borderColor: selectedOccasion ? Colors.ink : Colors.border,
+            backgroundColor: selectedOccasion ? Colors.ink : "transparent",
+          }}
+          activeOpacity={0.7}
+        >
+          <Feather name={selectedOccasion ? "tag" : "plus"} size={13} color={selectedOccasion ? Colors.cream : Colors.ink} />
+          <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 12, color: selectedOccasion ? Colors.cream : Colors.ink, letterSpacing: 1, textTransform: "uppercase" }}>
+            {selectedOccasion ? occasionLabel(selectedOccasion) : t("addOccasionCta")}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => handleLogWear(selectedOccasion)}
           disabled={logging}
           style={{ backgroundColor: Colors.ink, paddingVertical: 16, alignItems: "center" }}
           activeOpacity={0.85}
@@ -543,7 +574,7 @@ export default function ItemDetail() {
                 {item.name}
               </Text>
               <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.muted, textAlign: "center", letterSpacing: 1, marginBottom: 20 }}>
-                {woreItCard?.wears}× worn
+                {t("wornCountSuffix", { n: String(woreItCard?.wears ?? 0) })}
               </Text>
               <Text style={{ fontFamily: "InstrumentSerif_400Regular_Italic", fontSize: 64, color: Colors.cpw, textAlign: "center", lineHeight: 72 }}>
                 {symbol}{woreItCard?.newCpw.toFixed(2)}

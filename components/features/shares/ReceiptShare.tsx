@@ -2,7 +2,7 @@ import { View, Text } from "react-native";
 import { useMemo } from "react";
 import type { ItemWithWears } from "@/lib/database.types";
 import { useCurrencyStore } from "@/store/currencyStore";
-import { t, locale } from "@/lib/i18n";
+import { t, locale, occasionLabel } from "@/lib/i18n";
 
 interface Props {
   item: ItemWithWears;
@@ -149,7 +149,7 @@ export function ReceiptShare({ item, username }: Props) {
                 {wear.worn_at.slice(5).replace("-", "/")}
               </Text>
               <Text style={[monoInk, { flex: 1 }]} numberOfLines={1}>
-                {wear.occasion ?? "—"}
+                {wear.occasion ? occasionLabel(wear.occasion) : "—"}
               </Text>
               <Text style={[monoInk, { width: 56, textAlign: "right", color: "#C4503A" }]}>
                 {symbol}{(item.price / (i + 1)).toFixed(2)}

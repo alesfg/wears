@@ -25,6 +25,7 @@ export const FREE_TIER_ITEM_LIMIT = 30;
 export const OCCASIONS = [
   "office",
   "wfh",
+  "gym",
   "date night",
   "dinner",
   "errand",

@@ -9,7 +9,7 @@ import { itemSwatchColor } from "@/components/features/ItemSwatch";
 import { useItemStore } from "@/store/itemStore";
 import { useCurrencyStore } from "@/store/currencyStore";
 import { buildWearsByDate, sortForOutfit, formatDayLabel, earnedForDay } from "@/lib/wearCalendar";
-import { t } from "@/lib/i18n";
+import { t, occasionLabel } from "@/lib/i18n";
 import type { ItemWithWears } from "@/lib/database.types";
 
 function StatCell({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
@@ -52,7 +52,7 @@ function DayItemCard({ item, ds, cardW, onPress }: { item: ItemWithWears; ds: st
             {item.name}
           </Text>
           <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1, textTransform: "uppercase", marginTop: 3 }} numberOfLines={1}>
-            {[item.brand, item.category, occasion].filter(Boolean).join(" · ")}
+            {[item.brand, item.category, occasion ? occasionLabel(occasion) : null].filter(Boolean).join(" · ")}
           </Text>
         </View>
         <View style={{ alignItems: "flex-end" }}>
