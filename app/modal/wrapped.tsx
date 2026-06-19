@@ -177,11 +177,9 @@ function Slide1({ item }: { item: ItemWithWears | null }) {
       <View style={{ alignSelf: "center", transform: [{ rotate: "-2deg" }], marginTop: 16, marginBottom: 20 }}>
         <View style={{ backgroundColor: "#FFFFFF", padding: 10, paddingBottom: 14, shadowColor: "#000", shadowOpacity: 0.18, shadowRadius: 16, shadowOffset: { width: 0, height: 4 }, elevation: 6 }}>
           {/* Photo area */}
-          <View style={{ width: SW - 72, aspectRatio: 1, overflow: "hidden", position: "relative" }}>
-            {item.image_url ? (
-              <Image source={{ uri: item.image_url }} style={{ width: "100%", height: "100%" }} resizeMode="cover" />
-            ) : (
-              <View style={{ flex: 1, backgroundColor: swatchColor(item.id) }} />
+          <View style={{ width: SW - 72, aspectRatio: 1, overflow: "hidden", position: "relative", backgroundColor: swatchColor(item.id) }}>
+            {item.image_url && (
+              <Image source={{ uri: item.image_url }} style={{ width: "100%", height: "100%" }} resizeMode="contain" />
             )}
             {/* EXHIBIT A */}
             <Text style={{ position: "absolute", top: 10, left: 12, fontFamily: "DMSans_400Regular", fontSize: 9, color: "rgba(255,255,255,0.6)", letterSpacing: 2, textTransform: "uppercase" }}>
@@ -308,11 +306,9 @@ function Slide3({ items }: { items: ItemWithWears[] }) {
       <View style={{ gap: 10 }}>
         {items.slice(0, 2).map((item) => (
           <View key={item.id} style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: "rgba(255,255,255,0.06)", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)", padding: 12 }}>
-            <View style={{ width: 56, height: 56, overflow: "hidden", flexShrink: 0 }}>
-              {item.image_url ? (
-                <Image source={{ uri: item.image_url }} style={{ width: 56, height: 56 }} resizeMode="cover" />
-              ) : (
-                <View style={{ flex: 1, backgroundColor: swatchColor(item.id) }} />
+            <View style={{ width: 56, height: 56, overflow: "hidden", flexShrink: 0, backgroundColor: swatchColor(item.id) }}>
+              {item.image_url && (
+                <Image source={{ uri: item.image_url }} style={{ width: 56, height: 56 }} resizeMode="contain" />
               )}
             </View>
             <View style={{ flex: 1 }}>
@@ -549,6 +545,10 @@ export default function Wrapped() {
   }, []);
 
   const advance = useCallback(() => {
+    // Stop and zero the bar immediately so the next slide's bar doesn't
+    // flash in at whatever fraction the timer had reached when tapped.
+    animRef.current?.stop();
+    progress.setValue(0);
     setSlide((s) => {
       const next = Math.min(s + 1, TOTAL_SLIDES - 1);
       if (next === TOTAL_SLIDES - 1 && s !== TOTAL_SLIDES - 1) {
@@ -556,11 +556,13 @@ export default function Wrapped() {
       }
       return next;
     });
-  }, []);
+  }, [progress]);
 
   const retreat = useCallback(() => {
+    animRef.current?.stop();
+    progress.setValue(0);
     setSlide((s) => Math.max(s - 1, 0));
-  }, []);
+  }, [progress]);
 
   useEffect(() => {
     progress.setValue(0);
