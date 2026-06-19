@@ -11,7 +11,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { Linking } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { Feather, AntDesign } from "@expo/vector-icons";
 import { useAuth } from "@/hooks/useAuth";
 import { Colors } from "@/constants/theme";
 import { t } from "@/lib/i18n";
@@ -104,8 +104,9 @@ function ReceiptDemo() {
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function Welcome() {
   const router = useRouter();
-  const { signInWithApple, signInAsGuest } = useAuth();
+  const { signInWithApple, signInWithGoogle, signInAsGuest } = useAuth();
   const [appleLoading, setAppleLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [guestLoading, setGuestLoading] = useState(false);
 
   const handleGuest = async () => {
@@ -118,6 +119,14 @@ export default function Welcome() {
     setAppleLoading(true);
     const err = await signInWithApple();
     setAppleLoading(false);
+    if (err) Alert.alert("Error", err);
+    // session change → AuthGuard redirects to /(app)
+  };
+
+  const handleGoogle = async () => {
+    setGoogleLoading(true);
+    const err = await signInWithGoogle();
+    setGoogleLoading(false);
     if (err) Alert.alert("Error", err);
     // session change → AuthGuard redirects to /(app)
   };
@@ -193,6 +202,35 @@ export default function Welcome() {
             />
           )
         )}
+
+        {/* Continue with Google */}
+        <TouchableOpacity
+          onPress={handleGoogle}
+          disabled={googleLoading}
+          style={{
+            height: 56,
+            backgroundColor: "#FFFFFF",
+            borderRadius: 100,
+            borderWidth: 1,
+            borderColor: "#DDD6CE",
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 10,
+          }}
+          activeOpacity={0.8}
+        >
+          {googleLoading ? (
+            <ActivityIndicator color={Colors.ink} />
+          ) : (
+            <>
+              <AntDesign name="google" size={18} color={Colors.ink} />
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 17, color: Colors.ink }}>
+                {t("continueGoogle")}
+              </Text>
+            </>
+          )}
+        </TouchableOpacity>
 
         {/* Continue with email */}
         <TouchableOpacity

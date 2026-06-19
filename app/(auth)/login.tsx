@@ -3,6 +3,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import * as AppleAuthentication from "expo-apple-authentication";
+import { AntDesign } from "@expo/vector-icons";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import { Colors } from "@/constants/theme";
@@ -13,13 +14,14 @@ import { t } from "@/lib/i18n";
 export default function Login() {
   const router = useRouter();
   const { mode } = useLocalSearchParams<{ mode?: string }>();
-  const { signInWithApple } = useAuth();
+  const { signInWithApple, signInWithGoogle } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSignUp, setIsSignUp] = useState(mode === "signup");
   const [loading, setLoading] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleAuth = async () => {
@@ -57,6 +59,16 @@ export default function Login() {
     // session change → AuthGuard redirects to /(app)
   };
 
+  const handleGoogle = async () => {
+    setGoogleLoading(true);
+    setError(null);
+    const err = await signInWithGoogle();
+    if (err) { setError(err); }
+    else { posthog.capture(Events.SIGN_IN, { method: "google" }); }
+    setGoogleLoading(false);
+    // session change → AuthGuard redirects to /(app)
+  };
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.cream, paddingHorizontal: 28 }} edges={["top", "bottom"]}>
       <TouchableOpacity onPress={() => router.replace("/(auth)/welcome")} style={{ paddingTop: 16, paddingBottom: 8 }}>
@@ -73,10 +85,11 @@ export default function Login() {
 
         <DashedLine marginVertical={0} />
 
-        {/* Apple Sign In — iOS only */}
-        {Platform.OS === "ios" && (
-          <View style={{ marginTop: 24, gap: 12 }}>
-            {appleLoading ? (
+        {/* Social sign in */}
+        <View style={{ marginTop: 24, gap: 12 }}>
+          {/* Apple Sign In — iOS only */}
+          {Platform.OS === "ios" && (
+            appleLoading ? (
               <View style={{ height: 44, justifyContent: "center", alignItems: "center" }}>
                 <ActivityIndicator color={Colors.ink} />
               </View>
@@ -88,17 +101,45 @@ export default function Login() {
                 style={{ height: 44 }}
                 onPress={handleApple}
               />
+            )
+          )}
+
+          {/* Google Sign In */}
+          <TouchableOpacity
+            onPress={handleGoogle}
+            disabled={googleLoading}
+            style={{
+              height: 44,
+              borderWidth: 1,
+              borderColor: Colors.border,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 10,
+            }}
+            activeOpacity={0.8}
+          >
+            {googleLoading ? (
+              <ActivityIndicator color={Colors.ink} />
+            ) : (
+              <>
+                <AntDesign name="google" size={16} color={Colors.ink} />
+                <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 14, color: Colors.ink }}>
+                  {t("continueGoogle")}
+                </Text>
+              </>
             )}
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-              <View style={{ flex: 1, height: 1, backgroundColor: Colors.border }} />
-              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 8, color: Colors.muted, letterSpacing: 1 }}>OR</Text>
-              <View style={{ flex: 1, height: 1, backgroundColor: Colors.border }} />
-            </View>
+          </TouchableOpacity>
+
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+            <View style={{ flex: 1, height: 1, backgroundColor: Colors.border }} />
+            <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 8, color: Colors.muted, letterSpacing: 1 }}>{t("orDivider")}</Text>
+            <View style={{ flex: 1, height: 1, backgroundColor: Colors.border }} />
           </View>
-        )}
+        </View>
 
         {/* Email / password */}
-        <View style={{ paddingTop: Platform.OS === "ios" ? 0 : 24, gap: 20 }}>
+        <View style={{ gap: 20 }}>
           <TextInput
             style={{ fontFamily: "InstrumentSerif_400Regular", fontSize: 18, color: Colors.ink, borderBottomWidth: 1, borderBottomColor: Colors.border, paddingBottom: 8 }}
             placeholder="email"

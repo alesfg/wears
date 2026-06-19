@@ -5,6 +5,7 @@ import * as Crypto from "expo-crypto";
 import { supabase } from "@/lib/supabase";
 import { useUserStore } from "@/store/userStore";
 import { useItemStore } from "@/store/itemStore";
+import { getGoogleIdToken } from "@/lib/googleSignIn";
 import { t } from "@/lib/i18n";
 
 // Apple's review devices have hung mid-flow with the loading spinner stuck —
@@ -107,6 +108,22 @@ export function useAuth() {
     }
   };
 
+  const signInWithGoogle = async (): Promise<string | null> => {
+    try {
+      const idToken = await getGoogleIdToken();
+      if (!idToken) return null; // user cancelled
+
+      const { error } = await supabase.auth.signInWithIdToken({
+        provider: "google",
+        token: idToken,
+      });
+      if (error) return error.message;
+      return null;
+    } catch (e: unknown) {
+      return (e as Error).message ?? "Google Sign In failed";
+    }
+  };
+
   const deleteAccount = async (): Promise<string | null> => {
     const { error } = await supabase.functions.invoke("delete-account");
     if (error) {
@@ -123,5 +140,5 @@ export function useAuth() {
     return null;
   };
 
-  return { session, user, isLoading, signOut, signInAsGuest, signInWithApple, deleteAccount };
+  return { session, user, isLoading, signOut, signInAsGuest, signInWithApple, signInWithGoogle, deleteAccount };
 }
