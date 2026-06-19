@@ -629,7 +629,11 @@ export default function Wrapped() {
     setSaving(false);
   };
 
-  const onReplay = () => setSlide(0);
+  const onReplay = () => {
+    animRef.current?.stop();
+    progress.setValue(0);
+    setSlide(0);
+  };
 
   // Slide backgrounds
   const SLIDE_CONFIG = [
