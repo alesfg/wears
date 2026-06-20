@@ -153,8 +153,9 @@ const en = {
   verdictSkip: "Skip it. Not worth the cost basis.",
 
   // Onboarding
-  step2Label: "STEP 2 / 3 · THE HOOK",
-  step3Label: "STEP 3 / 3 · THE MATH",
+  step1DiscoverLabel: "STEP 2 / 4 · DISCOVER",
+  step2Label: "STEP 3 / 4 · THE HOOK",
+  step3Label: "STEP 4 / 4 · THE MATH",
   guiltPieceHeadline: "What's the piece\nyou feel\n",
   guiltPieceAccent: "guilty about?",
   onboardingDesc:
@@ -171,6 +172,63 @@ const en = {
   everyWearDrops: "EVERY WEAR DROPS THE COST",
   oatMilkQuote: "Wear it {n} times and it costs less per wear than your weekly oat milk.",
   openCloset: "Open my closet →",
+
+  // Onboarding — discover (feature intro)
+  discoverIntroHeadline: "Here's what\nyou're getting into.",
+  featureCpwTitle: "Cost per wear",
+  featureCpwDesc: "Every piece has a cost basis — and it drops every single time you wear it.",
+  featureProfitableTitle: "Turn pieces \"profitable\"",
+  featureProfitableDesc: "Watch your closet's CPW climb the tier ladder from splurge to bargain, automatically.",
+  featureWrappedTitle: "Get your Wrapped",
+  featureWrappedDesc: "A shareable yearly recap of your closet's whole financial story.",
+
+  // Onboarding — quiz
+  quizStyleQuestion: "What's your shopping style?",
+  styleMinimalist: "Minimalist — quality over quantity",
+  styleTrendy: "Trend-driven — always something new",
+  styleInvestment: "Investment pieces — save up, buy big",
+  styleThrifted: "Thrifted & vintage — the hunt's the fun part",
+  styleShortMinimalist: "minimalist",
+  styleShortTrendy: "trend-driven",
+  styleShortInvestment: "investment-piece",
+  styleShortThrifted: "thrifted",
+
+  quizClosetQuestion: "How big is your closet?",
+  closetSmall: "Under 20 pieces",
+  closetMedium: "20–50 pieces",
+  closetLarge: "50+ pieces",
+  closetShortSmall: "tight",
+  closetShortMedium: "solid",
+  closetShortLarge: "stacked",
+
+  quizPainQuestion: "What's your biggest closet guilt?",
+  painImpulse: "Impulse buys I regret",
+  painUnworn: "Expensive pieces I never wear",
+  painUnknown: "No idea how much I actually spend",
+  painShortImpulse: "impulse buys",
+  painShortUnworn: "unworn splurges",
+  painShortUnknown: "the unknown",
+
+  quizFrequencyQuestion: "How often do you want to log outfits?",
+  freqDaily: "Every day",
+  freqWeekly: "A few times a week",
+  freqWhenever: "Whenever I remember",
+
+  // Onboarding — recap
+  recapHeadline: "Got it.",
+  recapSentence: "A {closet} closet, {style} shopper, mostly worried about {pain}. Let's put a number on it.",
+
+  // Onboarding — personalized hints (hook + math steps)
+  hookHintImpulse: "You said impulse buys get you — let's see if this one was worth it.",
+  hookHintUnworn: "You said it's the pricey pieces you never wear — pick one of those.",
+  hookHintUnknown: "You said you don't track what clothes actually cost you. Let's start now.",
+  mathFreqDaily: "Log it daily and watch this number melt.",
+  mathFreqWeekly: "A few times a week is all it takes to see this drop.",
+  mathFreqWhenever: "Even once in a while moves this number.",
+  namePlaceholderMinimalist: "White Tee",
+  namePlaceholderTrendy: "Going-Out Top",
+  namePlaceholderInvestment: "Designer Bag",
+  namePlaceholderThrifted: "Vintage Denim",
 
   // Calendar — month view
   calOutfitHistory: "OUTFIT · HISTORY",
@@ -499,8 +557,9 @@ const es: typeof en = {
   verdictSkip: "Mejor evítala. No justifica la base de costo.",
 
   // Onboarding
-  step2Label: "PASO 2 / 3 · EL GANCHO",
-  step3Label: "PASO 3 / 3 · LOS NÚMEROS",
+  step1DiscoverLabel: "PASO 2 / 4 · DESCUBRE",
+  step2Label: "PASO 3 / 4 · EL GANCHO",
+  step3Label: "PASO 4 / 4 · LOS NÚMEROS",
   guiltPieceHeadline: "¿Qué prenda te da\nmás\n",
   guiltPieceAccent: "culpa haber comprado?",
   onboardingDesc:
@@ -517,6 +576,63 @@ const es: typeof en = {
   everyWearDrops: "CADA USO BAJA EL COSTO",
   oatMilkQuote: "Úsala {n} veces y cuesta menos por uso que tu oat milk semanal.",
   openCloset: "Abrir mi closet →",
+
+  // Onboarding — descubre (intro de funciones)
+  discoverIntroHeadline: "Esto es lo que\nte espera.",
+  featureCpwTitle: "Costo por uso",
+  featureCpwDesc: "Cada prenda tiene una base de costo — y baja cada vez que te la pones.",
+  featureProfitableTitle: "Vuelve tus prendas \"profitable\"",
+  featureProfitableDesc: "Mira cómo el CPW de tu closet sube de nivel, de capricho a ganga, automáticamente.",
+  featureWrappedTitle: "Consigue tu Wrapped",
+  featureWrappedDesc: "Un resumen anual compartible de toda la historia financiera de tu closet.",
+
+  // Onboarding — quiz
+  quizStyleQuestion: "¿Cuál es tu estilo de compra?",
+  styleMinimalist: "Minimalista — calidad sobre cantidad",
+  styleTrendy: "Trendy — siempre algo nuevo",
+  styleInvestment: "Piezas de inversión — ahorro y compro en grande",
+  styleThrifted: "Second-hand y vintage — la cacería es lo divertido",
+  styleShortMinimalist: "minimalista",
+  styleShortTrendy: "trendy",
+  styleShortInvestment: "de inversión",
+  styleShortThrifted: "de second-hand",
+
+  quizClosetQuestion: "¿Qué tan grande es tu closet?",
+  closetSmall: "Menos de 20 prendas",
+  closetMedium: "20–50 prendas",
+  closetLarge: "50+ prendas",
+  closetShortSmall: "compacto",
+  closetShortMedium: "sólido",
+  closetShortLarge: "cargado",
+
+  quizPainQuestion: "¿Cuál es tu mayor culpa con la ropa?",
+  painImpulse: "Compras impulsivas de las que me arrepiento",
+  painUnworn: "Prendas caras que nunca uso",
+  painUnknown: "No tengo idea de cuánto gasto en realidad",
+  painShortImpulse: "las compras impulsivas",
+  painShortUnworn: "los caprichos sin usar",
+  painShortUnknown: "lo desconocido",
+
+  quizFrequencyQuestion: "¿Con qué frecuencia quieres registrar tus outfits?",
+  freqDaily: "Todos los días",
+  freqWeekly: "Un par de veces por semana",
+  freqWhenever: "Cuando me acuerde",
+
+  // Onboarding — resumen
+  recapHeadline: "Listo.",
+  recapSentence: "Un closet {closet}, compradora {style}, preocupada sobre todo por {pain}. Vamos a ponerle un número.",
+
+  // Onboarding — toques personalizados (pasos del gancho + matemáticas)
+  hookHintImpulse: "Dijiste que las compras impulsivas son lo tuyo — veamos si esta valió la pena.",
+  hookHintUnworn: "Dijiste que son las prendas caras que nunca usas — elige una de esas.",
+  hookHintUnknown: "Dijiste que no llevas cuenta de cuánto te cuesta la ropa. Empecemos ahora.",
+  mathFreqDaily: "Regístrala todos los días y mira cómo baja este número.",
+  mathFreqWeekly: "Con un par de veces por semana basta para ver caer este número.",
+  mathFreqWhenever: "Hasta usarla de vez en cuando mueve este número.",
+  namePlaceholderMinimalist: "Camiseta Blanca",
+  namePlaceholderTrendy: "Top de Fiesta",
+  namePlaceholderInvestment: "Bolso de Diseñador",
+  namePlaceholderThrifted: "Denim Vintage",
 
   // Calendar — month view
   calOutfitHistory: "HISTORIAL · DE · OUTFITS",
