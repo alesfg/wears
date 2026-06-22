@@ -37,7 +37,19 @@
           "iosUrlScheme": "com.googleusercontent.apps.727889693667-qj0j4ic4gt385opsr1kbsigehsvdc7no"
         }
       ],
-      "./plugins/withMlKitManifestFix.js"
+      "./plugins/withMlKitManifestFix.js",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "extraPods": [
+              { "name": "GoogleUtilities", "modular_headers": true },
+              { "name": "AppCheckCore", "modular_headers": true },
+              { "name": "RecaptchaInterop", "modular_headers": true }
+            ]
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
