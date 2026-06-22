@@ -36,7 +36,8 @@
         {
           "iosUrlScheme": "com.googleusercontent.apps.727889693667-qj0j4ic4gt385opsr1kbsigehsvdc7no"
         }
-      ]
+      ],
+      "./plugins/withMlKitManifestFix.js"
     ],
     "experiments": {
       "typedRoutes": true
