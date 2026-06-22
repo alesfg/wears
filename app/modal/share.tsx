@@ -63,7 +63,8 @@ export default function ShareModal() {
   };
 
   const saveToRoll = async () => {
-    const { status } = await requestPermissionsAsync();
+    // writeOnly: this only ever saves new images, never reads the library
+    const { status } = await requestPermissionsAsync(true);
     if (status !== "granted") {
       Alert.alert("Permission needed", "Allow photo library access to save.");
       return;

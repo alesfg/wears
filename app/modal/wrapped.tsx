@@ -611,7 +611,8 @@ export default function Wrapped() {
   };
 
   const onSaveToRoll = async () => {
-    const { status } = await requestPermissionsAsync();
+    // writeOnly: this only ever saves new images, never reads the library
+    const { status } = await requestPermissionsAsync(true);
     if (status !== "granted") {
       Alert.alert(t("wrappedPermNeededTitle"), t("wrappedPermNeededMsg"));
       return;
