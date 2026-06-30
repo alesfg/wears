@@ -10,6 +10,7 @@ import { usePaywall } from "@/hooks/usePaywall";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { DashedLine } from "@/components/ui/DashedLine";
 import { ItemRow } from "@/components/features/ItemRow";
+import { WearDatePicker } from "@/components/ui/WearDatePicker";
 import { Colors } from "@/constants/theme";
 import { OCCASIONS, getTier } from "@/constants/config";
 import { scheduleTierMilestoneNotification } from "@/lib/notifications";
@@ -24,6 +25,8 @@ export default function LogWear() {
   const { isAtFreeLimit } = usePaywall();
   const { track, Events } = useAnalytics();
 
+  const today = new Date().toISOString().split("T")[0];
+  const [selectedDate, setSelectedDate] = useState(today);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   const [quickLogCard, setQuickLogCard] = useState<{ name: string; newCpw: number; wears: number } | null>(null);
 
@@ -44,7 +47,7 @@ export default function LogWear() {
     const wear: WearInsert = {
       item_id: item.id,
       user_id: user.id,
-      worn_at: new Date().toISOString().split("T")[0],
+      worn_at: selectedDate,
       occasion: occasion ?? null,
     };
     const prevTier = getTier(item.cpw);
@@ -71,6 +74,11 @@ export default function LogWear() {
           <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 14, color: Colors.muted }}>✕</Text>
         </TouchableOpacity>
       </View>
+      {!quickLogCard && (
+        <View style={{ paddingHorizontal: 20, paddingBottom: 10 }}>
+          <WearDatePicker date={selectedDate} onChange={setSelectedDate} />
+        </View>
+      )}
       <DashedLine />
 
       {quickLogCard ? (

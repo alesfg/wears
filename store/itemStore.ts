@@ -12,6 +12,7 @@ interface ItemState {
   addItem: (item: ItemInsert, userId: string) => Promise<Item | null>;
   deleteItem: (itemId: string) => Promise<void>;
   logWear: (wear: WearInsert) => Promise<void>;
+  updateWear: (wearId: string, itemId: string, updates: { worn_at?: string; occasion?: string | null }) => Promise<void>;
   deleteWear: (wearId: string, itemId: string) => Promise<void>;
   reset: () => void;
 }
@@ -98,6 +99,25 @@ export const useItemStore = create<ItemState>((set, _get) => ({
       items: s.items.map((item) => {
         if (item.id !== wearData.item_id) return item;
         const newWears = [data, ...item.wears];
+        return attachCpw(item, newWears);
+      }),
+    }));
+  },
+
+  updateWear: async (wearId, itemId, updates) => {
+    const { data, error } = await supabase
+      .from("wears")
+      .update(updates)
+      .eq("id", wearId)
+      .select()
+      .single();
+
+    if (error || !data) return;
+
+    set((s) => ({
+      items: s.items.map((item) => {
+        if (item.id !== itemId) return item;
+        const newWears = item.wears.map((w) => (w.id === wearId ? data : w));
         return attachCpw(item, newWears);
       }),
     }));

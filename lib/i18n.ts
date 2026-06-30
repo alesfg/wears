@@ -102,6 +102,10 @@ const en = {
   occOther: "OTHER",
   shareReceiptCta: "Share the receipt →",
   loggedLabel: "✓ LOGGED",
+  iWoredThisOn: "I wore this on",
+  editWear: "Edit wear",
+  saveWear: "SAVE",
+  deleteWear: "DELETE WEAR",
 
   // Add item modal
   cancel: "CANCEL",
@@ -506,6 +510,10 @@ const es: typeof en = {
   doneCta: "Listo",
   shareReceiptCta: "Compartir el recibo →",
   loggedLabel: "✓ REGISTRADO",
+  iWoredThisOn: "Lo usé el",
+  editWear: "Editar uso",
+  saveWear: "GUARDAR",
+  deleteWear: "ELIMINAR USO",
 
   // Add item modal
   cancel: "CANCELAR",

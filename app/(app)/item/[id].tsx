@@ -19,11 +19,12 @@ import { useCurrencyStore } from "@/store/currencyStore";
 import { usePaywall } from "@/hooks/usePaywall";
 import { DashedLine } from "@/components/ui/DashedLine";
 import { TierBadge } from "@/components/ui/TierBadge";
+import { WearDatePicker, formatWearDate } from "@/components/ui/WearDatePicker";
 import { Colors } from "@/constants/theme";
 import { OCCASIONS, getTier, TIERS } from "@/constants/config";
 import { posthog, Events } from "@/lib/posthog";
 import { scheduleTierMilestoneNotification } from "@/lib/notifications";
-import type { WearInsert, ItemWithWears } from "@/lib/database.types";
+import type { Wear, WearInsert, ItemWithWears } from "@/lib/database.types";
 import { t, occasionLabel } from "@/lib/i18n";
 
 const { width } = Dimensions.get("window");
@@ -240,12 +241,43 @@ function ProgressTab({ item }: { item: ItemWithWears }) {
 // ─── Log tab ─────────────────────────────────────────────────────────────────
 function LogTab({ item }: { item: ItemWithWears }) {
   const symbol = useCurrencyStore((s) => s.symbol);
+  const { updateWear, deleteWear } = useItemStore();
+  const [editingWear, setEditingWear] = useState<Wear | null>(null);
+  const [editDate, setEditDate] = useState("");
+  const [editOccasion, setEditOccasion] = useState<string | undefined>(undefined);
+  const [saving, setSaving] = useState(false);
+
   const wearsAsc = useMemo(
     () => [...item.wears].sort((a, b) => new Date(a.worn_at).getTime() - new Date(b.worn_at).getTime()),
     [item.wears]
   );
 
   const acquired = new Date(item.purchased_at).toLocaleDateString("en-US", { month: "short", year: "numeric" });
+
+  const openEdit = (wear: Wear) => {
+    setEditingWear(wear);
+    setEditDate(wear.worn_at);
+    setEditOccasion(wear.occasion ?? undefined);
+  };
+
+  const handleSave = async () => {
+    if (!editingWear) return;
+    setSaving(true);
+    await updateWear(editingWear.id, item.id, {
+      worn_at: editDate,
+      occasion: editOccasion ?? null,
+    });
+    setSaving(false);
+    setEditingWear(null);
+  };
+
+  const handleDelete = async () => {
+    if (!editingWear) return;
+    setSaving(true);
+    await deleteWear(editingWear.id, item.id);
+    setSaving(false);
+    setEditingWear(null);
+  };
 
   return (
     <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
@@ -286,7 +318,12 @@ function LogTab({ item }: { item: ItemWithWears }) {
           {[...wearsAsc].reverse().map((wear, i) => {
             const cpwThen = (item.price / (wearsAsc.length - i)).toFixed(2);
             return (
-              <View key={wear.id} style={{ flexDirection: "row", paddingVertical: 8 }}>
+              <TouchableOpacity
+                key={wear.id}
+                onPress={() => openEdit(wear)}
+                activeOpacity={0.7}
+                style={{ flexDirection: "row", paddingVertical: 8, alignItems: "center" }}
+              >
                 <Text style={[rowText, { flex: 3 }]}>
                   {wear.worn_at.slice(2).replace(/-/g, "/")}
                 </Text>
@@ -296,7 +333,7 @@ function LogTab({ item }: { item: ItemWithWears }) {
                 <Text style={[rowText, { flex: 3, textAlign: "right", color: Colors.cpw }]}>
                   {symbol}{cpwThen}
                 </Text>
-              </View>
+              </TouchableOpacity>
             );
           })}
 
@@ -317,6 +354,74 @@ function LogTab({ item }: { item: ItemWithWears }) {
           </Text>
         </>
       )}
+
+      {/* Edit wear sheet */}
+      <Modal visible={!!editingWear} transparent animationType="slide" onRequestClose={() => setEditingWear(null)}>
+        <Pressable style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "flex-end" }} onPress={() => setEditingWear(null)}>
+          <Pressable onPress={() => {}}>
+            <View style={{ backgroundColor: Colors.cream, paddingHorizontal: 20, paddingTop: 20, paddingBottom: 36, borderTopLeftRadius: 20, borderTopRightRadius: 20 }}>
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 2, textTransform: "uppercase", marginBottom: 16 }}>
+                {t("editWear")}
+              </Text>
+
+              <WearDatePicker date={editDate} onChange={setEditDate} />
+
+              <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 9, color: Colors.muted, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 10, marginTop: 4 }}>
+                {t("occasionOptional")}
+              </Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
+                {OCCASIONS.map((occ) => {
+                  const selected = editOccasion === occ;
+                  return (
+                    <TouchableOpacity
+                      key={occ}
+                      onPress={() => setEditOccasion(selected ? undefined : occ)}
+                      style={{
+                        paddingHorizontal: 12,
+                        paddingVertical: 8,
+                        borderWidth: 1,
+                        borderColor: selected ? Colors.ink : Colors.border,
+                        backgroundColor: selected ? Colors.ink : "transparent",
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: selected ? Colors.cream : Colors.ink, letterSpacing: 1 }}>
+                        {occasionLabel(occ)}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              <TouchableOpacity
+                onPress={handleSave}
+                disabled={saving}
+                style={{ backgroundColor: Colors.ink, paddingVertical: 14, alignItems: "center", marginBottom: 10 }}
+                activeOpacity={0.85}
+              >
+                {saving ? (
+                  <ActivityIndicator color={Colors.cream} />
+                ) : (
+                  <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.cream, letterSpacing: 2, textTransform: "uppercase" }}>
+                    {t("saveWear")}
+                  </Text>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleDelete}
+                disabled={saving}
+                style={{ paddingVertical: 12, alignItems: "center" }}
+                activeOpacity={0.7}
+              >
+                <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 10, color: Colors.cpw, letterSpacing: 1 }}>
+                  {t("deleteWear")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -331,9 +436,11 @@ export default function ItemDetail() {
   const symbol = useCurrencyStore((s) => s.symbol);
 
   const item = useMemo(() => items.find((i) => i.id === id), [items, id]);
+  const today = new Date().toISOString().split("T")[0];
   const [activeTab, setActiveTab] = useState<Tab>("ticker");
   const [showOccasionPicker, setShowOccasionPicker] = useState(false);
   const [selectedOccasion, setSelectedOccasion] = useState<string | undefined>(undefined);
+  const [selectedDate, setSelectedDate] = useState(today);
   const [logging, setLogging] = useState(false);
   const [woreItCard, setWoreItCard] = useState<{ newCpw: number; wears: number } | null>(null);
   const [showItemMenu, setShowItemMenu] = useState(false);
@@ -356,7 +463,7 @@ export default function ItemDetail() {
     const wear: WearInsert = {
       item_id: item.id,
       user_id: user.id,
-      worn_at: new Date().toISOString().split("T")[0],
+      worn_at: selectedDate,
       occasion: occasion ?? null,
     };
     const prevTier = getTier(item.cpw);
@@ -524,6 +631,7 @@ export default function ItemDetail() {
 
       {/* Log CTA */}
       <View style={{ position: "absolute", bottom: 0, left: 0, right: 0, paddingBottom: 28, paddingHorizontal: 20, paddingTop: 12, backgroundColor: Colors.cream, borderTopWidth: 1, borderTopColor: Colors.border }}>
+        <WearDatePicker date={selectedDate} onChange={setSelectedDate} />
         <TouchableOpacity
           onPress={() => setShowOccasionPicker((v) => !v)}
           disabled={logging}
@@ -556,7 +664,7 @@ export default function ItemDetail() {
             <ActivityIndicator color={Colors.cream} />
           ) : (
             <Text style={{ fontFamily: "DMSans_400Regular", fontSize: 11, color: Colors.cream, letterSpacing: 2, textTransform: "uppercase" }}>
-              {t("iWoredThis")}
+              {selectedDate === today ? t("iWoredThis") : `+ ${t("iWoredThisOn")} ${formatWearDate(selectedDate)}`}
             </Text>
           )}
         </TouchableOpacity>
