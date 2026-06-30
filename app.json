@@ -19,7 +19,7 @@
       "expo-router",
       "expo-font",
       "expo-sharing",
-      "expo-media-library",
+      ["expo-media-library", { "granularPermissions": [] }],
       "expo-apple-authentication",
       "expo-localization",
       "expo-secure-store",
@@ -38,6 +38,7 @@
         }
       ],
       "./plugins/withMlKitManifestFix.js",
+      "./plugins/withRemoveMediaPermissions.js",
       [
         "expo-build-properties",
         {
